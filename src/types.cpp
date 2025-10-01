@@ -1,75 +1,63 @@
-#include <stdio.h>
+#include "types.h"
 
-typedef enum Numeric_type{
-	BIGINT,
-	INT,
-	SMALLINT,
-	TINYINT,
-	BIT,
-	DECIMAL,
-	NUMERIC,
-	MONEY,
-	SMALLMONEY,
-	FLOAT,
-	REAL
-} NumericType;
+using namespace std;
 
+typedef struct data_list_node data_node;
 
-typedef enum Date_type {
-	DATETIME,
-	SMALLDATETIME,
-	DATE,
-	TIME
-}DateType;
-
-typedef enum Char_type {
-	CHAR,
-	VARCHAR,
-	TEXT
-}CharType;
-
-typedef enum Types {
-	NUMERIC,
-	CHAR,
-	DATETIME
-}Types;
-
-class Type {
-public:
-	Types tp;
+struct data_list_node {
+	char id;
 	int size;
-	virtual read_from_binary();
-	virtual write_to_binary ();
-	Type(Type type, int size) {
-		this->tp = tp;
-		this->size = size;
-	}
+	struct data_list_node* next;
 };
 
-class Numeric_type : public Type {
-public:
-	Types tp;
-	NumericType subtype;
-	int size;
-	virtual read_from_binary();
-	virtual write_to_binary();
-	Numeric_type(Types tp, int size, NumericType subtype) {
-		: Type(type, size);
-		this->size = size;
-		this->tp = tp;
-		this->subtype = subtype;
-	}
-};
+data_node* init(char id, int size) {
+	data_node* root = (data_node*)malloc(sizeof(data_node*));
+	*root = {id, size, NULL };
+	return root;
+}
 
-class Bigint : public Numeric_type {
-public:
-	Types tp;
-	NumericType subtype;
-	int size = 8;
-	Bigint(char[20] str_bigint) {
-		: NumericType (NUMERIC, 8, BIGINT)
-		this->tp = NUMERIC;
-		this->subtype = BIGINT;
-	}
+data_node* append(data_node* root, char id, int size) {
+	if (root == NULL) root = init(id, size);
+	else {
+		data_node* current = root;
+		while (current->next != NULL) {
+			current = current->next;
+		}
 
-};
+		data_node* new_node = (data_node*)malloc(sizeof(data_node*));
+		*new_node = { id, size, NULL };
+		current->next = new_node;
+		return new_node;
+	}
+}
+
+void destroy(data_node* root) {
+	if (root != NULL) {
+		data_node* next = root->next;
+		while (next != NULL) {
+			free(root);
+			root = next;
+			next = root->next;
+		}
+		free(root);
+	}
+}
+
+int get_type_size(All_types colomn, int size=-1) {
+	switch (colomn) {
+	case 0: return 1;
+	case 1: return 1;
+	case 2: return 2;
+	case 3: return 4;
+	case 4: return 8;
+	case 5: return 4;
+	case 6: return 8;
+	case 7: return 8;
+	case 8: return 4;
+	case 9: return 3;
+	case 10: return 5;
+	case 11: if (size <= 254 && size != -1) return size + 2; else return 256;
+	case 12: if (size <= 254 && size != -1) return size + 2; else return 256;
+	case 13: return 256;
+	}
+}
