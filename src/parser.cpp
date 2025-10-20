@@ -6,6 +6,7 @@
 #include "types.h"
 #include <iostream>
 #include <fstream>
+#include "metadata.h"
 
 using namespace std;
 
@@ -75,13 +76,6 @@ struct DynamicRecord {
         }
         return 0;
     }
-};
-
-//структура столбца (интерпритация данных в столбце)
-struct Column {
-    string name;
-    All_types type;
-    int size; //размер (VARCHAR)
 };
 
 //создание таблицы
@@ -185,8 +179,8 @@ CreateTableQuery parse_create_table_query(const string& command) {
                     try {
                         size = stoi(size_str);
                     }
-                    catch (const exception& e) {
-                        cout << "Error: Invalid size for column " << column_name << ": " << size_str << endl;
+                    catch (const exception&) {
+                        cout << "Error parsing CREATE TABLE" << endl;
                         continue;
                     }
                 }
@@ -212,12 +206,10 @@ CreateTableQuery parse_create_table_query(const string& command) {
             cout << "Column: " << column_name << " Type: " << base_type << " Size: " << size << endl;
         }
 
-        //проверка наличия столбцов
         if (query.columns.empty()) {
             cout << "Error: No valid columns defined" << endl;
         }
 
-        //обработка исключений
     }
     catch (const exception& e) {
         cout << "Error parsing CREATE TABLE: " << e.what() << endl;
@@ -228,74 +220,24 @@ CreateTableQuery parse_create_table_query(const string& command) {
 
 //функция сохранения метаданных таблицы
 void save_table_metadata(const CreateTableQuery& query) {
-    //сохраняем метаданные в отдельный файл
-    ofstream meta_file(query.table_name + ".meta", ios::binary);
-    //проверка открытия файла
-    if (meta_file.is_open()) {
-        int column_count = query.columns.size();//сохранение кол чтолбцоы
-        meta_file.write(reinterpret_cast<const char*>(&column_count), sizeof(column_count));
-
-        //цикл по всем столбцам
-        for (const auto& column : query.columns) {
-            //сохраняем имя столбца
-            int name_size = column.name.size();
-            meta_file.write(reinterpret_cast<const char*>(&name_size), sizeof(name_size));//размер
-            meta_file.write(column.name.c_str(), name_size);//строка
-
-            //сохраняем тип и размер
-            meta_file.write(reinterpret_cast<const char*>(&column.type), sizeof(column.type));
-            meta_file.write(reinterpret_cast<const char*>(&column.size), sizeof(column.size));
-        }
-        meta_file.close();
-    }
+    serialize_metadata(query.table_name, query.columns, 0);
 }
 
 //функция загрузки метаданных таблицы
 bool load_table_metadata(const string& table_name, vector<Column>& columns) {
-    ifstream meta_file(table_name + ".meta", ios::binary);
-    if (!meta_file.is_open()) { //проверка открытия файла
-        return false;
-    }
-
-    //чтение кол столбцов
-    int column_count;
-    meta_file.read(reinterpret_cast<char*>(&column_count), sizeof(column_count));
-
-    //подготовка вектора столбцов
-    columns.clear();
-    //читаем столбцы
-    for (int i = 0; i < column_count; i++) {
-        Column column;
-
-        //читаем имя столбца
-        int name_size;
-        meta_file.read(reinterpret_cast<char*>(&name_size), sizeof(name_size));
-        char* name_buffer = new char[name_size + 1];//выделяем память (под строку +1 байт)
-        meta_file.read(name_buffer, name_size);
-        name_buffer[name_size] = '\0';//добавляем нуль-терминатор в конец строки
-        column.name = string(name_buffer);
-        delete[] name_buffer;
-
-        //читаем тип и размер столбца
-        meta_file.read(reinterpret_cast<char*>(&column.type), sizeof(column.type));
-        meta_file.read(reinterpret_cast<char*>(&column.size), sizeof(column.size));
-
-        columns.push_back(column);//добавление в вектор
-    }
-
-    meta_file.close();
-    return true;
+    uint64_t record_count;
+    return deserialize_metadata(table_name, columns, record_count);
 }
 
 //функция считывания данных из файла 
-void read_data_from_file(const string& filename, const vector<Column>& columns, vector<DynamicRecord>& records) { //заполняет переданный вектор records
+void read_data_from_file(const string& filename, const vector<Column>& columns, vector<DynamicRecord>& records) {
     ifstream file(filename, ios::binary);//открытие файла
 
-    if (file.is_open()) { //проверка открытия файла
+    if (file.is_open()) { 
         int record_count;
         file.read(reinterpret_cast<char*>(&record_count), sizeof(record_count));
 
-        records.clear();//подготовка вктора записей
+        records.clear();
 
         for (int i = 0; i < record_count; ++i) {
             DynamicRecord record;
@@ -325,7 +267,26 @@ void read_data_from_file(const string& filename, const vector<Column>& columns, 
                     record.add_value(column.type, string(string_buffer));
                     delete[] string_buffer;
                 }
-                //обработканеизвестных типов
+                //обработка даты и времени
+                else if (column.type == DATETIME || column.type == SMALLDATETIME ||
+                    column.type == DATE || column.type == TIME) {
+                    // Для временных типов читаем как строку (упрощенно)
+                    int data_size;
+                    file.read(reinterpret_cast<char*>(&data_size), sizeof(data_size));
+
+                    char* buffer = new char[data_size + 1];
+                    file.read(buffer, data_size);
+                    buffer[data_size] = '\0';
+                    record.add_value(column.type, string(buffer));
+                    delete[] buffer;
+                }
+                //обработка BIT
+                else if (column.type == BIT) {
+                    char bit_value;
+                    file.read(&bit_value, sizeof(bit_value));
+                    record.add_value(column.type, to_string(bit_value));
+                }
+                //обработка неизвестных типов
                 else {
                     //для неподдерживаемых читаем как строку
                     int data_size;
@@ -355,19 +316,19 @@ void write_data_to_file(const string& filename, const vector<Column>& columns, v
 
     if (file.is_open()) {
         //запись количества записей
-        int record_count = records.size();
+        int record_count = static_cast<int>(records.size());  
         file.write(reinterpret_cast<const char*>(&record_count), sizeof(record_count));
 
         //цикл по всем записям
-        for (const auto& record : records) {
+        for (const auto& record : records) {  
             //цикл по всем столбцам записи
-            for (int i = 0; i < columns.size(); i++) {
-                const auto& column = columns[i];
-                const auto& cell = record.values[i];
+            for (size_t i = 0; i < columns.size(); i++) { 
+                const auto& column = columns[i];  
+                const auto& cell = record.values[i];  
 
-                //обработуа целочисленных типов
-                if (column.type == INT || column.type == TINYINT || column.type == SMALLINT || column.type == BIGINT) {
-                    int int_value = record.get_int_value(i);
+                //обработка целочисленных типов
+                if (column.type == INT || column.type == TINYINT || column.type == SMALLINT || column.type == BIGINT) {  
+                    int int_value = record.get_int_value(static_cast<int>(i)); 
                     file.write(reinterpret_cast<const char*>(&int_value), sizeof(int_value));
                 }
                 //дробные
@@ -377,13 +338,17 @@ void write_data_to_file(const string& filename, const vector<Column>& columns, v
                 }
                 //строковые
                 else if (column.type == VARCHAR || column.type == CHAR || column.type == TEXT) {
-                    int string_size = cell.data.size();
+                    int string_size = static_cast<int>(cell.data.size());  // Явное приведение
                     file.write(reinterpret_cast<const char*>(&string_size), sizeof(string_size));
                     file.write(cell.data.c_str(), string_size);
                 }
+                else if (column.type == BIT) {
+                    char bit_value = static_cast<char>(stoi(cell.data));
+                    file.write(&bit_value, sizeof(bit_value));
+                }
                 //неизвестные
                 else {
-                    int data_size = cell.data.size();
+                    int data_size = static_cast<int>(cell.data.size());  
                     file.write(reinterpret_cast<const char*>(&data_size), sizeof(data_size));
                     file.write(cell.data.c_str(), data_size);
                 }
@@ -503,56 +468,175 @@ void process_select_command(const string& command) {
     cout << "Total records: " << records.size() << endl;//вывод статистики
 }
 
-//функция обработки команды UPDATE
+struct WhereCondition {
+    string column_name;
+    string operator_; // "=", ">", "<", ">=", "<=", "!="
+    string value;
+};
+
+
+bool check_where_condition(const DynamicRecord& record,
+    const vector<Column>& columns,
+    const WhereCondition& condition) {
+    int column_index = -1;
+    for (int i = 0; i < columns.size(); i++) {
+        if (columns[i].name == condition.column_name) {
+            column_index = i;
+            break;
+        }
+    }
+
+    if (column_index == -1) return false;
+
+    string record_value = record.get_string_value(column_index);
+
+    if (condition.operator_ == "=") {
+        return record_value == condition.value;
+    }
+    else if (condition.operator_ == "!=") {
+        return record_value != condition.value;
+    }
+    else if (condition.operator_ == ">") {
+        return record.get_int_value(column_index) > stoi(condition.value);
+    }
+    else if (condition.operator_ == "<") {
+        return record.get_int_value(column_index) < stoi(condition.value);
+    }
+
+    return false;
+}
+
+vector<pair<string, string>> parse_set_clause(const string& set_part) {
+    vector<pair<string, string>> updates;
+    stringstream ss(set_part);
+    string assignment;
+
+    while (getline(ss, assignment, ',')) {
+        size_t eq_pos = assignment.find('=');
+        if (eq_pos != string::npos) {
+            string column = assignment.substr(0, eq_pos);
+            string value = assignment.substr(eq_pos + 1);
+
+            column.erase(0, column.find_first_not_of(" "));
+            column.erase(column.find_last_not_of(" ") + 1);
+            value.erase(0, value.find_first_not_of(" "));
+            value.erase(value.find_last_not_of(" ") + 1);
+
+            if (!value.empty() && value[0] == '\'' && value.back() == '\'') {
+                value = value.substr(1, value.size() - 2);
+            }
+
+            updates.push_back({ column, value });
+        }
+    }
+    return updates;
+}
+
+WhereCondition parse_where_clause(const string& where_part) {
+    WhereCondition condition;
+    vector<string> operators = { "=", "!=", ">", "<", ">=", "<=" };
+
+    for (const auto& op : operators) {
+        size_t op_pos = where_part.find(op);
+        if (op_pos != string::npos) {
+            condition.column_name = where_part.substr(0, op_pos);
+            condition.value = where_part.substr(op_pos + op.length());
+            condition.operator_ = op;
+
+            condition.column_name.erase(0, condition.column_name.find_first_not_of(" "));
+            condition.column_name.erase(condition.column_name.find_last_not_of(" ") + 1);
+            condition.value.erase(0, condition.value.find_first_not_of(" "));
+            condition.value.erase(condition.value.find_last_not_of(" ") + 1);
+
+            if (!condition.value.empty() && condition.value[0] == '\'' && condition.value.back() == '\'') {
+                condition.value = condition.value.substr(1, condition.value.size() - 2);
+            }
+
+            break;
+        }
+    }
+
+    return condition;
+}
+
 void process_update_command(const string& command) {
     string upper_command = command;
     transform(upper_command.begin(), upper_command.end(), upper_command.begin(), ::toupper);
 
-    //поиск ключевых позиций
     size_t update_pos = upper_command.find("UPDATE");
     size_t set_pos = upper_command.find("SET");
     size_t where_pos = upper_command.find("WHERE");
 
-    //проверка синтаксиса
     if (update_pos == string::npos || set_pos == string::npos) {
         cout << "Error: Invalid UPDATE syntax" << endl;
         return;
     }
 
-    string table_name = command.substr(update_pos + 6, set_pos - (update_pos + 6));//извлечение имени таблицы
-    table_name.erase(0, table_name.find_first_not_of(" "));//очистка
+    string table_name = command.substr(update_pos + 6, set_pos - (update_pos + 6));
+    table_name.erase(0, table_name.find_first_not_of(" "));
     table_name.erase(table_name.find_last_not_of(" ") + 1);
 
-    if (table_name.empty()) { //проверка имени таблицы
+    if (table_name.empty()) {
         cout << "Error: Table name is empty" << endl;
         return;
     }
 
+    string set_part;
+    if (where_pos != string::npos) {
+        set_part = command.substr(set_pos + 3, where_pos - (set_pos + 3));
+    }
+    else {
+        set_part = command.substr(set_pos + 3);
+    }
+
+    auto updates = parse_set_clause(set_part);
+
+    WhereCondition where_condition;
+    bool has_where = (where_pos != string::npos);
+    if (has_where) {
+        string where_part = command.substr(where_pos + 5);
+        where_condition = parse_where_clause(where_part);
+    }
+
     cout << "Updating table: " << table_name << endl;
 
-    //загружаем метаданные таблицы
     vector<Column> table_columns;
     if (!load_table_metadata(table_name, table_columns)) {
         cout << "Error: Cannot load metadata for table '" << table_name << "'" << endl;
         return;
     }
 
-    //чтение данных таблицы
     vector<DynamicRecord> records;
     read_data_from_file(table_name + ".dat", table_columns, records);
 
-    //потом сделать set wehere , пока так
-    if (!records.empty()) {
-        //обновляем первую запись (временная реализация)
-        if (records[0].values.size() > 1) {
-            records[0].values[1].data = "UpdatedName";
+    int updated_count = 0;
+
+    for (auto& record : records) {
+        if (has_where && !check_where_condition(record, table_columns, where_condition)) {
+            continue;
         }
-        write_data_to_file(table_name + ".dat", table_columns, records);
-        cout << "Table updated successfully!" << endl;
+
+        for (const auto& update : updates) {
+            int column_index = -1;
+            for (int i = 0; i < table_columns.size(); i++) {
+                if (table_columns[i].name == update.first) {
+                    column_index = i;
+                    break;
+                }
+            }
+
+            if (column_index != -1 && column_index < record.values.size()) {
+                record.values[column_index].data = update.second;
+                updated_count++;
+            }
+        }
     }
+
+    write_data_to_file(table_name + ".dat", table_columns, records);
+    cout << "Updated " << updated_count << " records successfully!" << endl;
 }
 
-//функция обработки команды DELETE
+
 void process_delete_command(const string& command) {
     string upper_command = command;
     transform(upper_command.begin(), upper_command.end(), upper_command.begin(), ::toupper);
@@ -560,13 +644,11 @@ void process_delete_command(const string& command) {
     size_t from_pos = upper_command.find("FROM");
     size_t where_pos = upper_command.find("WHERE");
 
-    //проверка синтаксиса
     if (from_pos == string::npos) {
         cout << "Error: Invalid DELETE syntax" << endl;
         return;
     }
 
-    //извлечение имени таблицы
     string table_name;
     if (where_pos != string::npos) {
         table_name = command.substr(from_pos + 4, where_pos - (from_pos + 4));
@@ -583,9 +665,15 @@ void process_delete_command(const string& command) {
         return;
     }
 
+    WhereCondition where_condition;
+    bool has_where = (where_pos != string::npos);
+    if (has_where) {
+        string where_part = command.substr(where_pos + 5);
+        where_condition = parse_where_clause(where_part);
+    }
+
     cout << "Deleting from table: " << table_name << endl;
 
-    // Загружаем метаданные таблицы
     vector<Column> table_columns;
     if (!load_table_metadata(table_name, table_columns)) {
         cout << "Error: Cannot load metadata for table '" << table_name << "'" << endl;
@@ -595,18 +683,24 @@ void process_delete_command(const string& command) {
     vector<DynamicRecord> records;
     read_data_from_file(table_name + ".dat", table_columns, records);
 
-    if (!records.empty()) {
-        records.clear(); // В реальной реализации здесь должна быть условная логика
-        write_data_to_file(table_name + ".dat", table_columns, records);
-        cout << "All records deleted from table!" << endl;
+    vector<DynamicRecord> remaining_records;
+    int deleted_count = 0;
+
+    for (const auto& record : records) {
+        if (has_where && check_where_condition(record, table_columns, where_condition)) {
+            deleted_count++;
+        }
+        else {
+            remaining_records.push_back(record);
+        }
     }
-    else {
-        cout << "Table is already empty" << endl;
-    }
+
+    write_data_to_file(table_name + ".dat", table_columns, remaining_records);
+    cout << "Deleted " << deleted_count << " records successfully!" << endl;
 }
 
 int parse() {
-    string command; //хранит SQL команду введенную пользователем
+    string command; 
 
     while (true) {
         cout << "\n=== Almost SQLite ===" << endl;
@@ -620,8 +714,7 @@ int parse() {
 
         getline(cin, command);
 
-        //удаляем точку с запятой в конце если есть
-        if (!command.empty() && command.back() == ';') { //проверяет что команда не пустая и заканчивается на ;
+        if (!command.empty() && command.back() == ';') { 
             command.pop_back();
         }
 
@@ -662,4 +755,7 @@ int parse() {
     }
 
     return 0;
+}
+int main() {
+    return parse();
 }

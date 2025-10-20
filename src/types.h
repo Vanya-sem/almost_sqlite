@@ -1,9 +1,13 @@
 #pragma once
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
 #include <string>
 #include <algorithm>
+#include <cstdint>
+#include <vector>
+
 using namespace std;
 
 //все типы данных
@@ -24,6 +28,12 @@ typedef enum All_types {
     TEXT = 13           // id = 13 
 } All_types;
 
+struct Column {
+    string name;
+    All_types type = INT; 
+    int size = 0;          
+};
+
 //узел односвязного списка
 struct data_list_node {
     All_types type;  //id 
@@ -33,13 +43,9 @@ struct data_list_node {
 
 typedef struct data_list_node data_node;
 
-data_node* init(All_types type, int size);//1ый узел списка
-data_node* append(data_node* root, All_types type, int size);//новый узел в конец списка
-void destroy(data_node* root);//освобождает память занятую списком
-int get_type_size(All_types column, int size = -1);//размер в Б
-
-//строки в тип данных (types.cpp)
+data_node* init(All_types type, int size);
+data_node* append(data_node* root, All_types type, int size);
+void destroy(data_node* root);
+int get_type_size(All_types column, int size = -1);
 All_types get_type_from_string(const string& type_str);
-
-//числовой размер строки для VARCHAR (types.cpp)
 int get_varchar_size(const string& type_str);

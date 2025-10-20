@@ -95,9 +95,8 @@ void make_page_meta(char* filepath, unsigned int page_size = PAGE_SIZE) {
 //void get_note()
 
 int do_meta() {
-	char filepath[256] = "C:\\Users\\vanya\\OneDrive\\Desktop\\almost_sqlite\\src\\file.bin";
-	cout << "Input the filepath";
+	char filepath[256] = "file.bin";  //файл создастся в текущей папке
+	cout << "Creating file: file.bin" << endl;
 	make_file(filepath, 1, 1);
-
-
+	return 0;
 }

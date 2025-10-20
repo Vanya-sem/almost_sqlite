@@ -2,23 +2,29 @@
 
 //инициализация 1ого узла списка
 data_node* init(All_types type, int size) {
-    data_node* root = (data_node*)malloc(sizeof(data_node));//выделение памяти
+    data_node* root = (data_node*)malloc(sizeof(data_node));
+    if (root == NULL) {
+        return NULL;  
+    }
     *root = { type, size, NULL };
     return root;
 }
 
 //добавления нового узла
 data_node* append(data_node* root, All_types type, int size) {
-    if (root == NULL) { //проверка на пустой список
+    if (root == NULL) {
         root = init(type, size);
     }
-    else { //поиск конца списка
+    else {
         data_node* current = root;
         while (current->next != NULL) {
             current = current->next;
         }
 
-        data_node* new_node = (data_node*)malloc(sizeof(data_node));//создание нового узла
+        data_node* new_node = (data_node*)malloc(sizeof(data_node));
+        if (new_node == NULL) {
+            return root; 
+        }
         *new_node = { type, size, NULL };
         current->next = new_node;
     }
@@ -90,7 +96,7 @@ int get_varchar_size(const string& type_str) {
     try {//обработка ошибок преобразования
         return stoi(size_str);
     }
-    catch (const exception& e) {
+    catch (const exception&) {
         return -1;
     }
 }

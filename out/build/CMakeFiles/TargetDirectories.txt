@@ -1,0 +1,3 @@
+C:/Users/Admin/source/repos/almost_sqlite/out/build/CMakeFiles/almost_sqlite.dir
+C:/Users/Admin/source/repos/almost_sqlite/out/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Admin/source/repos/almost_sqlite/out/build/CMakeFiles/ZERO_CHECK.dir
