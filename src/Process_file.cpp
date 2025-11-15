@@ -12,8 +12,8 @@
 
 using namespace std;
 
-void make_file(char* filepath, char read, char write, unsigned int page_size = PAGE_SIZE) {
-	ofstream file(filepath, ios::binary);
+void make_metafile(char* filepath, char read, char write, unsigned int page_size = PAGE_SIZE) {
+	ofstream file(filepath, ios::binary | ios:: in);
 	if (file) {
 		file.write(HEADER, strlen(HEADER)); //14 bytes
 		char is_btree = IS_BTREE;
@@ -26,7 +26,7 @@ void make_file(char* filepath, char read, char write, unsigned int page_size = P
 		file.write(&read, sizeof(char)); //1 byte
 		file.write(&write, sizeof(char)); //1 byte
 
-		for (int i = 0; i < METADATA_SIZE - RAW_METADATA; i++) file.write(0, sizeof(char)); //27 reserve bytes
+		for (int i = 0; i < METADATA_SIZE - RAW_METADATA; i++) file.write("0", sizeof(char)); //27 reserve bytes
 		// Metadata of binary file is 50 bytes
 		file.close();
 	}
@@ -97,6 +97,36 @@ void make_page_meta(char* filepath, unsigned int page_size = PAGE_SIZE) {
 int do_meta() {
 	char filepath[256] = "file.bin";  //файл создастся в текущей папке
 	cout << "Creating file: file.bin" << endl;
-	make_file(filepath, 1, 1);
+	make_metafile(filepath, 1, 1);
+	return 0;
+}
+
+void print_metafile(char* filepath) {
+	char header[14], is_btree[1], unicode[1], engine[1], read[1], write[1];
+	int page_size;
+	fstream file(filepath, ios::binary | ios :: out);
+	if (file){
+		file.read(header, sizeof(header));
+		file.read(is_btree, sizeof(is_btree));
+		file.read(unicode, sizeof(unicode));
+		file.read(engine, sizeof(engine));
+		file.read(reinterpret_cast<char*>(&page_size), sizeof(page_size));
+		file.read(read, sizeof(read));
+		file.read(write, sizeof(write));
+		cout << "File header: " << header << endl;
+		cout << "Is b_tree: " << is_btree << endl;
+		cout << "Unicode: " << unicode << endl;
+		cout << "Engine version: " << engine << endl;
+		cout << "Page size: " << page_size << endl;
+		cout << "Is able to read: " << read << endl;
+		cout << "Is able to write: " << write << endl;
+	}
+}
+
+int main_main() {
+	char filepath[256] = "file.bin";  //файл создастся в текущей папке
+	cout << "Creating file: file.bin" << endl;
+	make_metafile(filepath, 1, 1);
+	print_metafile(filepath);
 	return 0;
 }

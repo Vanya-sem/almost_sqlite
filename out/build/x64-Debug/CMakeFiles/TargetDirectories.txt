@@ -1,3 +1,0 @@
-C:/Users/Admin/source/repos/almost_sqlite/out/build/x64-Debug/CMakeFiles/almost_sqlite.dir
-C:/Users/Admin/source/repos/almost_sqlite/out/build/x64-Debug/CMakeFiles/edit_cache.dir
-C:/Users/Admin/source/repos/almost_sqlite/out/build/x64-Debug/CMakeFiles/rebuild_cache.dir
