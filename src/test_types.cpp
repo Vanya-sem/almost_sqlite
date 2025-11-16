@@ -4,7 +4,7 @@
 #include <cmath>
 #include <sstream>
 
-class ErrorType : public std::exception {
+/*class ErrorType : public std::exception {
 private:
 	std::string message;
 public:
@@ -151,3 +151,4 @@ bool test_for_real(char* real, bool not_null) {
 	}
 	return true;
 }
+*/
