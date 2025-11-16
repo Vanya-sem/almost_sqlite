@@ -756,6 +756,6 @@ int parse() {
 
     return 0;
 }
-int main() {
+int main_main() {
   return parse();
 }
