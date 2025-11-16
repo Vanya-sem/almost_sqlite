@@ -4,6 +4,6 @@
 using namespace std;
 
 void make_constraint() {
-    // TODO: добавить реализацию позже
+    // TODO: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     cout << "Constraint function - not implemented yet" << endl;
 }

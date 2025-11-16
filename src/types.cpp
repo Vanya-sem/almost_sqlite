@@ -1,6 +1,6 @@
 #include "types.h"
 
-//инициализация 1ого узла списка
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 1пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 data_node* init(All_types type, int size) {
     data_node* root = (data_node*)malloc(sizeof(data_node));
     if (root == NULL) {
@@ -10,7 +10,7 @@ data_node* init(All_types type, int size) {
     return root;
 }
 
-//добавления нового узла
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 data_node* append(data_node* root, All_types type, int size) {
     if (root == NULL) {
         root = init(type, size);
@@ -31,16 +31,16 @@ data_node* append(data_node* root, All_types type, int size) {
     return root;
 }
 
-//освобождение памяти списка
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 void destroy(data_node* root) {
-    while (root != NULL) {//до конца списка
-        data_node* temp = root; //указатель во временной переменной
+    while (root != NULL) {//пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+        data_node* temp = root; //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         root = root->next;
         free(temp);
     }
 }
 
-//размер типа данных в байтах
+//пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 int get_type_size(All_types column, int size) {
     switch (column) {
     case BIT: return 1;
@@ -54,16 +54,16 @@ int get_type_size(All_types column, int size) {
     case SMALLDATETIME: return 4;
     case DATE: return 3;
     case TIME: return 5;
-    case CHAR: return size + 2; //переменный размер поэтому size 
+    case CHAR: return size + 2; //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ size 
     case VARCHAR: return size + 2;
     case TEXT: return size;
     default: return -1;
     }
 }
 
-//строки в тип данных
+//пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 All_types get_type_from_string(const string& type_str) {
-    string upper_type = type_str;//приведение к верхнему регистру
+    string upper_type = type_str;//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     transform(upper_type.begin(), upper_type.end(), upper_type.begin(), ::toupper);
 
     if (upper_type == "BIT") return BIT;
@@ -81,19 +81,19 @@ All_types get_type_from_string(const string& type_str) {
     if (upper_type == "VARCHAR") return VARCHAR;
     if (upper_type == "TEXT") return TEXT;
 
-    cout << "Warning: Unknown type '" << type_str << "', using TINYINT as default" << endl;//неизвестный тип возвращаем по умолчанию
+    cout << "Warning: Unknown type '" << type_str << "', using TINYINT as default" << endl;//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     return TINYINT;
 }
 
-//числовой размер из VARCHAR
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ VARCHAR
 int get_varchar_size(const string& type_str) {
-    size_t start = type_str.find("(");//поиск скобок
+    size_t start = type_str.find("(");//пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     size_t end = type_str.find(")");
-    if (start == string::npos || end == string::npos) {//скобки не найдены
+    if (start == string::npos || end == string::npos) {//пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         return -1;
     }
-    string size_str = type_str.substr(start + 1, end - start - 1);//подстрока с размером (начинам с символа после скобки)
-    try {//обработка ошибок преобразования
+    string size_str = type_str.substr(start + 1, end - start - 1);//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
+    try {//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         return stoi(size_str);
     }
     catch (const exception&) {
