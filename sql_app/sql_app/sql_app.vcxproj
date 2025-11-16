@@ -22,7 +22,7 @@
     <ClCompile Include="..\..\src\Constraint_table.cpp" />
     <ClCompile Include="..\..\src\metadata.cpp" />
     <ClCompile Include="..\..\src\parser.cpp" />
-    <ClCompile Include="..\..\src\Process_file.cpp" />
+    <ClCompile Include="..\..\src\db.cpp" />
     <ClCompile Include="..\..\src\test_types.cpp" />
     <ClCompile Include="..\..\src\types.cpp" />
   </ItemGroup>

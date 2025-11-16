@@ -18,7 +18,7 @@
     <ClCompile Include="..\..\src\parser.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Process_file.cpp">
+    <ClCompile Include="..\..\src\db.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\test_types.cpp">
