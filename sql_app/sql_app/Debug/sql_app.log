@@ -1,8 +1,0 @@
-﻿  Constraint_table.cpp
-  db.cpp
-  metadata.cpp
-  test_types.cpp
-  types.cpp
-  Создание кода...
-  LINK : не найден или не выполнена сборка C:\Users\vanya\source\repos\almost_sqlite\sql_app\Debug\sql_app.exe при последней инкрементной компоновке; выполняется полная компоновка
-  sql_app.vcxproj -> C:\Users\vanya\source\repos\almost_sqlite\sql_app\Debug\sql_app.exe
