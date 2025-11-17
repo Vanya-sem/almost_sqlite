@@ -39,7 +39,7 @@ public:
 	char* filepath;
 	unsigned int page_size;
 	unsigned int pages = 0;
-	DataBase(char* filepath, unsigned int page_size) : filepath(filepath), page_size(page_size){
+	DataBase(char* filepath, unsigned int page_size=PAGE_SIZE) : filepath(filepath), page_size(page_size){
 		this->read_flag = 1;
 		this->write_flag = 1;
 	}
@@ -147,7 +147,7 @@ public:
 	}
 
 
-	void print_pagemeta(short int page) {
+	Page_meta print_pagemeta(short int page) {
 		unsigned int page_num;
 		unsigned long long prev_page = NULL; //Pointer of prev page in file
 		unsigned long long next_page = NULL; //Pointer of next page in file
@@ -161,7 +161,7 @@ public:
 		ifstream file(this->filepath, ios::binary | ios::in);
 		if (!file) {
 			cerr << "File is not opened!";
-			return;
+			return Page_meta{};
 		}
 
 		long long file_size;
@@ -170,7 +170,7 @@ public:
 
 		if (file_size < FILE_METADATA_SIZE + this->page_size * page || page < 0) {
 			cerr << "Ошибка номера страницы при получении метаданных";
-			return;
+			return Page_meta{};
 		}
 
 		file.seekg(FILE_METADATA_SIZE + this->page_size * page, ios::beg);
@@ -195,12 +195,14 @@ public:
 		cout << "Lower: " << (int)lower << endl;
 
 		file.close();
+		return Page_meta{ page_num, prev_page, next_page, data_type, LSN, checksum, slot_count, upper, lower };
 	}
 
-	void print_metafile() {
-		char header[15], unicode, engine, read_flag, write_flag;
+	File_meta print_metafile() {
+		char header[15], unicode, engine;
+		bool read_flag, write_flag;
 		bool is_btree;
-		int page_size;
+		unsigned int page_size;
 		fstream file(this->filepath, ios::binary | ios::in);
 		if (file) {
 
@@ -209,8 +211,8 @@ public:
 			file.read(reinterpret_cast<char*>(&is_btree), sizeof(is_btree));
 			file.read(&unicode, sizeof(unicode));
 			file.read(&engine, sizeof(engine));
-			file.read(&read_flag, sizeof(read_flag));
-			file.read(&write_flag, sizeof(write_flag));
+			file.read(reinterpret_cast<char*>(&read_flag), sizeof(read_flag));
+			file.read(reinterpret_cast<char*>(&write_flag), sizeof(write_flag));
 			cout << "File header: " << header << endl;
 			cout << "Is b_tree: " << (int)is_btree << endl;
 			cout << "Unicode: " << (int)unicode << endl;
@@ -219,7 +221,9 @@ public:
 			cout << "Is able to read: " << (int)read_flag << endl;
 			cout << "Is able to write: " << (int)write_flag << endl;
 			file.close();
+			return File_meta{ HEADER, is_btree, page_size, unicode, engine, read_flag, write_flag };
 		}
+		return File_meta{};
 	}
 
 	bool check_read() {
