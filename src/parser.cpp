@@ -1,8 +1,8 @@
-#include <cstring> //cтроки (strlen и тд)
-#include <sstream> //строковые потоки (getline и тд)
-#include <vector> //динамич масс
-#include <algorithm> //работа с контейнерами (find, transform и тд)
-#include <cctype> //классификация символов (::toupper, ::isdigit и тд)
+#include <cstring> //cпїЅпїЅпїЅпїЅпїЅ (strlen пїЅ пїЅпїЅ)
+#include <sstream> //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (getline пїЅ пїЅпїЅ)
+#include <vector> //пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+#include <algorithm> //пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (find, transform пїЅ пїЅпїЅ)
+#include <cctype> //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (::toupper, ::isdigit пїЅ пїЅпїЅ)
 #include "types.h"
 #include <iostream>
 #include <fstream>
@@ -10,17 +10,17 @@
 
 using namespace std;
 
-//парсинг команды SQL
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ SQL
 int parse_command(const string& command) {
     if (command.empty()) return -1;
 
-    string upper_command = command;//регистр 
+    string upper_command = command;//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ 
     transform(upper_command.begin(), upper_command.end(), upper_command.begin(), ::toupper);
 
-    size_t first_char = upper_command.find_first_not_of(" ");//удаление нач пробелов 
+    size_t first_char = upper_command.find_first_not_of(" ");//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 
     if (first_char == string::npos) return -1;
 
-    if (upper_command.compare(first_char, 6, "CREATE") == 0) { //проверка что начинается с ключевого слова
+    if (upper_command.compare(first_char, 6, "CREATE") == 0) { //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         return 0;
     }
     else if (upper_command.compare(first_char, 6, "SELECT") == 0) {
@@ -36,35 +36,35 @@ int parse_command(const string& command) {
     return -1;
 }
 
-//структура для хранения значения ячейки
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 struct CellValue {
     All_types type;
-    string data;  //храним как строку
+    string data;  //пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 
     CellValue(All_types t = INT, const string& d = "") : type(t), data(d) {}
-};//инициализация полей
+};//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 
-//структура динамической записи (любое количество столбцов с разными типами данных)
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
 struct DynamicRecord {
-    vector<CellValue> values;  //каждый эл соотв столбцу
+    vector<CellValue> values;  //пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
-    //конструктор для создания
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     DynamicRecord(const vector<CellValue>& vals = {}) : values(vals) {}
 
-    //добвление значения в конец записи
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     void add_value(All_types type, const string& data) {
         values.push_back(CellValue(type, data));
     }
 
-    //получение значения столбца как строки (для вывода)
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
     string get_string_value(int column_index) const {
-        if (column_index < values.size()) { //проверка границ
+        if (column_index < values.size()) { //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             return values[column_index].data;
         }
         return "";
     }
 
-    //получение значения столбца как целого числа (для числовых операций)
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
     int get_int_value(int column_index) const {
         if (column_index < values.size()) {
             try {
@@ -78,13 +78,13 @@ struct DynamicRecord {
     }
 };
 
-//создание таблицы
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 struct CreateTableQuery {
     string table_name;
-    vector<Column> columns;   //список столбцов
+    vector<Column> columns;   //пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 };
 
-//функция является ли имя таблицы ключевым словом
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 bool is_keyword(const string& table_name) {
     vector<string> sql_keywords = {
         "SELECT", "UPDATE", "DELETE", "INSERT", "WHERE", "FROM", "CREATE", "DROP",
@@ -94,86 +94,86 @@ bool is_keyword(const string& table_name) {
     string upper_name = table_name;
     transform(upper_name.begin(), upper_name.end(), upper_name.begin(), ::toupper);
 
-    return find(sql_keywords.begin(), sql_keywords.end(), upper_name) != sql_keywords.end(); //ппоиск в векторе
+    return find(sql_keywords.begin(), sql_keywords.end(), upper_name) != sql_keywords.end(); //пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 }
 
-//функция парсинга команды CREATE TABLE
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ CREATE TABLE
 CreateTableQuery parse_create_table_query(const string& command) {
-    CreateTableQuery query;//создаем query для заполения
+    CreateTableQuery query;//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ query пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
     try {
-        //извлекаем имя таблицы
+        //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         size_t table_start = command.find("TABLE") + 5;
         size_t paren_start = command.find("(");
 
-        if (table_start == string::npos || paren_start == string::npos) { //проверка на спец значение 
+        if (table_start == string::npos || paren_start == string::npos) { //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 
             cout << "Error: Invalid CREATE TABLE syntax" << endl;
             return query;
         }
 
-        //извлекаем и очищаем имя таблицы
+        //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         string table_name = command.substr(table_start, paren_start - table_start);
 
-        //лишние пробелы удаляем
+        //пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         table_name.erase(0, table_name.find_first_not_of(" "));
         table_name.erase(table_name.find_last_not_of(" ") + 1);
 
-        if (table_name.empty()) { //проверка имени таблицы
+        if (table_name.empty()) { //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             cout << "Error: Table name is empty" << endl;
             return query;
         }
 
-        query.table_name = table_name; //сохранение имени таблицы в структуре результата
+        query.table_name = table_name; //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
-        //извлекаем часть со столбцами (то что в скобках)
+        //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
         string columns_part = command.substr(paren_start + 1, command.find_last_of(")") - paren_start - 1);
 
-        //удаляем пробелы в начале и конце
+        //пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ
         columns_part.erase(0, columns_part.find_first_not_of(" "));
         columns_part.erase(columns_part.find_last_not_of(" ") + 1);
 
-        //потоковый парсер
-        stringstream ss(columns_part);//разбитие строки по разделтелям
-        string column_definition;//буфер для одного определения столбца
-        vector<string> column_names; //временное хранилище для проверки уникальности
+        //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+        stringstream ss(columns_part);//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        string column_definition;//пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        vector<string> column_names; //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
-        //цикл парсинга столбцов
-        while (getline(ss, column_definition, ',')) { //разделитель столбцов
+        //пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        while (getline(ss, column_definition, ',')) { //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             column_definition.erase(0, column_definition.find_first_not_of(" "));
             column_definition.erase(column_definition.find_last_not_of(" ") + 1);
 
-            if (column_definition.empty()) continue;//пропуск пустых определений
+            if (column_definition.empty()) continue;//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
-            //разделяем имя и тип столбца
+            //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             size_t first_space = column_definition.find(" ");
             if (first_space == string::npos) {
                 cout << "Error: Invalid column definition: " << column_definition << endl;
                 continue;
             }
 
-            string column_name = column_definition.substr(0, first_space);//извлечение имени столб
-            string column_type_str = column_definition.substr(first_space + 1);//извлечение типа
+            string column_name = column_definition.substr(0, first_space);//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+            string column_type_str = column_definition.substr(first_space + 1);//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 
-            //удаляем пробелы в типе
+            //пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ
             column_type_str.erase(0, column_type_str.find_first_not_of(" "));
             column_type_str.erase(column_type_str.find_last_not_of(" ") + 1);
 
-            //проверка уникальности имени столбца
+            //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (find(column_names.begin(), column_names.end(), column_name) != column_names.end()) {
-                cout << "Error: Duplicate column name: " << column_name << endl;//пропускаем столбец
+                cout << "Error: Duplicate column name: " << column_name << endl;//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 continue;
             }
-            column_names.push_back(column_name);//добавляем в вектор
+            column_names.push_back(column_name);//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 
-            //обрабатываем базовый тип (без размера)
+            //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
             string base_type = column_type_str;
             int size = 0;
 
-            //проверяем есть ли размер в скобках
+            //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             size_t paren_open = column_type_str.find("(");
             if (paren_open != string::npos) {
                 base_type = column_type_str.substr(0, paren_open);
-                size_t paren_close = column_type_str.find(")");//если есть скобки извлекаем баз тип и размер
+                size_t paren_close = column_type_str.find(")");//пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                 if (paren_close != string::npos) {
                     string size_str = column_type_str.substr(paren_open + 1, paren_close - paren_open - 1);
                     try {
@@ -186,23 +186,23 @@ CreateTableQuery parse_create_table_query(const string& command) {
                 }
             }
 
-            //преобразуем строки типа в enum
+            //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ enum
             All_types column_type_id = get_type_from_string(base_type);
 
-            // проверка что VARCHAR имеет положительный размер
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ VARCHAR пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             if (column_type_id == VARCHAR && size <= 0) {
                 cout << "Error: VARCHAR must have a size for column " << column_name << endl;
                 continue;
             }
 
-            //для CHAR
+            //пїЅпїЅпїЅ CHAR
             if (column_type_id == CHAR && size <= 0) {
                 size = 1;
             }
 
-            //создание и добавление столбца
+            //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             Column column = { column_name, column_type_id, size };
-            query.columns.push_back(column);//в вектор
+            query.columns.push_back(column);//пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             cout << "Column: " << column_name << " Type: " << base_type << " Size: " << size << endl;
         }
 
@@ -218,20 +218,20 @@ CreateTableQuery parse_create_table_query(const string& command) {
     return query;
 }
 
-//функция сохранения метаданных таблицы
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 void save_table_metadata(const CreateTableQuery& query) {
     serialize_metadata(query.table_name, query.columns, 0);
 }
 
-//функция загрузки метаданных таблицы
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 bool load_table_metadata(const string& table_name, vector<Column>& columns) {
     uint64_t record_count;
     return deserialize_metadata(table_name, columns, record_count);
 }
 
-//функция считывания данных из файла 
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ 
 void read_data_from_file(const string& filename, const vector<Column>& columns, vector<DynamicRecord>& records) {
-    ifstream file(filename, ios::binary);//открытие файла
+    ifstream file(filename, ios::binary);//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 
     if (file.is_open()) { 
         int record_count;
@@ -242,21 +242,21 @@ void read_data_from_file(const string& filename, const vector<Column>& columns, 
         for (int i = 0; i < record_count; ++i) {
             DynamicRecord record;
 
-            //читаем значения для каждого столбца согласно его типу
+            //пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
             for (const auto& column : columns) {
-                //обработка целочисленных типов
+                //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 if (column.type == INT || column.type == TINYINT || column.type == SMALLINT || column.type == BIGINT) {
                     int int_value;
                     file.read(reinterpret_cast<char*>(&int_value), sizeof(int_value));
                     record.add_value(column.type, to_string(int_value));
                 }
-                //обработка дробных типов
+                //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 else if (column.type == FLOAT || column.type == REAL) {
                     float float_value;
                     file.read(reinterpret_cast<char*>(&float_value), sizeof(float_value));
                     record.add_value(column.type, to_string(float_value));
                 }
-                //обработка строковых типов
+                //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 else if (column.type == VARCHAR || column.type == CHAR || column.type == TEXT) {
                     int string_size;
                     file.read(reinterpret_cast<char*>(&string_size), sizeof(string_size));
@@ -267,10 +267,10 @@ void read_data_from_file(const string& filename, const vector<Column>& columns, 
                     record.add_value(column.type, string(string_buffer));
                     delete[] string_buffer;
                 }
-                //обработка даты и времени
+                //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 else if (column.type == DATETIME || column.type == SMALLDATETIME ||
                     column.type == DATE || column.type == TIME) {
-                    // Для временных типов читаем как строку (упрощенно)
+                    // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
                     int data_size;
                     file.read(reinterpret_cast<char*>(&data_size), sizeof(data_size));
 
@@ -280,15 +280,15 @@ void read_data_from_file(const string& filename, const vector<Column>& columns, 
                     record.add_value(column.type, string(buffer));
                     delete[] buffer;
                 }
-                //обработка BIT
+                //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ BIT
                 else if (column.type == BIT) {
                     char bit_value;
                     file.read(&bit_value, sizeof(bit_value));
                     record.add_value(column.type, to_string(bit_value));
                 }
-                //обработка неизвестных типов
+                //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 else {
-                    //для неподдерживаемых читаем как строку
+                    //пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
                     int data_size;
                     file.read(reinterpret_cast<char*>(&data_size), sizeof(data_size));
 
@@ -310,35 +310,35 @@ void read_data_from_file(const string& filename, const vector<Column>& columns, 
     }
 }
 
-//функция записи данных в файл
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ
 void write_data_to_file(const string& filename, const vector<Column>& columns, vector<DynamicRecord>& records) {
     ofstream file(filename, ios::binary | ios::trunc);
 
     if (file.is_open()) {
-        //запись количества записей
+        //пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         int record_count = static_cast<int>(records.size());  
         file.write(reinterpret_cast<const char*>(&record_count), sizeof(record_count));
 
-        //цикл по всем записям
+        //пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         for (const auto& record : records) {  
-            //цикл по всем столбцам записи
+            //пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             for (size_t i = 0; i < columns.size(); i++) { 
                 const auto& column = columns[i];  
                 const auto& cell = record.values[i];  
 
-                //обработка целочисленных типов
+                //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 if (column.type == INT || column.type == TINYINT || column.type == SMALLINT || column.type == BIGINT) {  
                     int int_value = record.get_int_value(static_cast<int>(i)); 
                     file.write(reinterpret_cast<const char*>(&int_value), sizeof(int_value));
                 }
-                //дробные
+                //пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 else if (column.type == FLOAT || column.type == REAL) {
                     float float_value = stof(cell.data);
                     file.write(reinterpret_cast<const char*>(&float_value), sizeof(float_value));
                 }
-                //строковые
+                //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 else if (column.type == VARCHAR || column.type == CHAR || column.type == TEXT) {
-                    int string_size = static_cast<int>(cell.data.size());  // Явное приведение
+                    int string_size = static_cast<int>(cell.data.size());  // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     file.write(reinterpret_cast<const char*>(&string_size), sizeof(string_size));
                     file.write(cell.data.c_str(), string_size);
                 }
@@ -346,7 +346,7 @@ void write_data_to_file(const string& filename, const vector<Column>& columns, v
                     char bit_value = static_cast<char>(stoi(cell.data));
                     file.write(&bit_value, sizeof(bit_value));
                 }
-                //неизвестные
+                //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 else {
                     int data_size = static_cast<int>(cell.data.size());  
                     file.write(reinterpret_cast<const char*>(&data_size), sizeof(data_size));
@@ -362,23 +362,23 @@ void write_data_to_file(const string& filename, const vector<Column>& columns, v
     }
 }
 
-//функция обработки команды CREATE
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ CREATE
 void process_create_command(const string& command) {
-    CreateTableQuery query = parse_create_table_query(command);//парсинг
+    CreateTableQuery query = parse_create_table_query(command);//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
-    //валидация результата парсинга
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     if (query.table_name.empty() || query.columns.empty()) {
-        cout << "Error: Invalid table definition" << endl;//проверяет что парсер успешно извлек имя таблицы и хотя бы один столбец
+        cout << "Error: Invalid table definition" << endl;//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         return;
     }
 
-    //проверка на ключевое слово
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     if (is_keyword(query.table_name)) {
         cout << "Error: Table name '" << query.table_name << "' is a reserved SQL keyword." << endl;
         return;
     }
 
-    //проверяем не существует ли уже таблица
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     ifstream test_file(query.table_name + ".dat");
     if (test_file.good()) {
         cout << "Error: Table '" << query.table_name << "' already exists." << endl;
@@ -386,38 +386,38 @@ void process_create_command(const string& command) {
         return;
     }
 
-    //подтверждение создания
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     cout << "Creating table: " << query.table_name << " with " << query.columns.size() << " columns" << endl;
 
-    //создаем пустой файл данных для таблицы
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     vector<DynamicRecord> records;
     write_data_to_file(query.table_name + ".dat", query.columns, records);
 
-    //сохраняем метаданные
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     save_table_metadata(query);
 
     cout << "Table created successfully!" << endl;
 }
 
-//функция обработки команды SELECT 
+//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ SELECT 
 void process_select_command(const string& command) {
     string upper_command = command;
     transform(upper_command.begin(), upper_command.end(), upper_command.begin(), ::toupper);
 
-    //извлекаем имя таблицы
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     string table_name;
-    size_t from_pos = upper_command.find("FROM");//поиск лючевого слова from
+    size_t from_pos = upper_command.find("FROM");//пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ from
     if (from_pos != string::npos) {
-        table_name = command.substr(from_pos + 4);//извлечение имени таблицы
-        table_name.erase(0, table_name.find_first_not_of(" "));//очистка имени таблицы
+        table_name = command.substr(from_pos + 4);//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        table_name.erase(0, table_name.find_first_not_of(" "));//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         table_name.erase(table_name.find_last_not_of(" ;") + 1);
     }
     else {
-        cout << "Error: Invalid SELECT syntax - missing FROM" << endl;//проверка наличия from
+        cout << "Error: Invalid SELECT syntax - missing FROM" << endl;//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ from
         return;
     }
 
-    //проверка имени таблицы
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     if (table_name.empty()) {
         cout << "Error: Table name is empty" << endl;
         return;
@@ -425,15 +425,15 @@ void process_select_command(const string& command) {
 
     cout << "Selecting from table: " << table_name << endl;
 
-    //загружаем метаданные таблицы
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     vector<Column> table_columns;
-    if (!load_table_metadata(table_name, table_columns)) { //загружает структуру таблицы из .meta файла
+    if (!load_table_metadata(table_name, table_columns)) { //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ .meta пїЅпїЅпїЅпїЅпїЅ
         cout << "Error: Cannot load metadata for table '" << table_name << "'" << endl;
         cout << "Table might not exist or metadata is corrupted" << endl;
         return;
     }
 
-    //читаем данные таблицы
+    //пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     vector<DynamicRecord> records;
     read_data_from_file(table_name + ".dat", table_columns, records);
 
@@ -442,22 +442,22 @@ void process_select_command(const string& command) {
         return;
     }
 
-    //выводим заголовок таблицы
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     cout << "\n=== " << table_name << " ===" << endl;
 
-    //выводим названия столбцов
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     for (const auto& column : table_columns) {
         cout << column.name << "\t| ";
     }
     cout << endl;
 
-    //выводим разделитель
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     for (int i = 0; i < table_columns.size(); i++) {
         cout << "--------\t| ";
     }
     cout << endl;
 
-    //выводим данных записей
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     for (const auto& record : records) {
         for (int i = 0; i < table_columns.size(); i++) {
             cout << record.get_string_value(i) << "\t| ";
@@ -465,7 +465,7 @@ void process_select_command(const string& command) {
         cout << endl;
     }
 
-    cout << "Total records: " << records.size() << endl;//вывод статистики
+    cout << "Total records: " << records.size() << endl;//пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 }
 
 struct WhereCondition {
@@ -718,19 +718,19 @@ int parse() {
             command.pop_back();
         }
 
-        //выход
+        //пїЅпїЅпїЅпїЅпїЅ
         if (command == "EXIT" || command == "exit") {
             cout << "Goodbye!" << endl;
             break;
         }
 
-        //пропуск пустых команд
+        //пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         if (command.empty()) continue;
 
-        //определение типа команды
+        //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         int command_type = parse_command(command);
 
-        //обработка команд в блоке try-catch
+        //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ try-catch
         try {
             if (command_type == 0) {
                 process_create_command(command);
