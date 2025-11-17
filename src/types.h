@@ -10,7 +10,7 @@
 
 using namespace std;
 
-//все типы данных
+//пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 typedef enum All_types {
     BIT = 0,            // id = 0
     TINYINT = 1,        // id = 1
@@ -34,10 +34,10 @@ struct Column {
     int size = 0;          
 };
 
-//узел односвязного списка
+//пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 struct data_list_node {
     All_types type;  //id 
-    int size;        //размер данных
+    int size;        //пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     struct data_list_node* next;
 };
 

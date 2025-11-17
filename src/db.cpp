@@ -27,11 +27,11 @@ typedef struct Page_meta {
 	unsigned long long prev_page;//Pointer of previous page in file
 	unsigned long long next_page;//Pointer of next page in file
 	char data_type; //0 - Data, 1 - Index
-	int LSN; // Последняя запись транзакции на изменение в лог файл
-	int checksum; // Контрольная сумма
-	int slot_count; // Количество слотов
-	unsigned int upper; // Указатель на конец записей
-	unsigned int lower; // Указатель на начало таблицы слотов
+	int LSN; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+	int checksum; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+	int slot_count; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+	unsigned int upper; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+	unsigned int lower; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 }Page_meta;
 
 class DataBase {
@@ -63,7 +63,7 @@ public:
 			for (int i = 0; i < FILE_METADATA_SIZE - RAW_METADATA; i++) file.write("\0", sizeof(char)); //26 reserve bytes
 			// Metadata of binary file is 50 bytes
 			if (file.tellp() != 50) {
-				cerr << "Ошибка при создании метаданных файла";
+				cerr << "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ";
 				return File_meta{};
 			}
 			file.close();
@@ -86,7 +86,7 @@ public:
 			return Page_meta{};
 		}
 		if (page_num != this->pages && page_num < 0) {
-			cerr << "Неправильный номер страницы";
+			cerr << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ";
 			return Page_meta{};
 		}
 
@@ -95,7 +95,7 @@ public:
 		file_size = file.tellp();
 
 		if (file_size < FILE_METADATA_SIZE + page_num * this->page_size) {
-			cerr << "Размер файла меньше, чем необходимо";
+			cerr << "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ";
 			return Page_meta{};
 		}
 		
@@ -121,11 +121,11 @@ public:
 		}
 
 		char data_type = 0; //0 - Data, 1 - Index
-		int LSN = 0; // Последняя запись транзакции на изменение в лог файл
-		int checksum = 0; // Контрольная сумма
-		int slot_count = 0; // Количество слотов
-		unsigned int upper = 0; // Указатель на конец записей
-		unsigned int lower = this->page_size; // Указатель на начало таблицы слотов
+		int LSN = 0; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+		int checksum = 0; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+		int slot_count = 0; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+		unsigned int upper = 0; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+		unsigned int lower = this->page_size; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 
 		file.write(&data_type, sizeof(data_type));
 		file.write(reinterpret_cast<char*>(&LSN), sizeof(LSN));
@@ -138,7 +138,7 @@ public:
 		file.seekp(this->page_size - PAGE_METADATA_SIZE, ios::cur);
 		file.write("\0", sizeof(char));
 		if (file.tellp() % this->page_size != FILE_METADATA_SIZE) {
-			cerr << "Ошибка при создании метеданных на странице: " << page_num;
+			cerr << "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: " << page_num;
 		}
 		file.close();
 		
@@ -152,11 +152,11 @@ public:
 		unsigned long long prev_page = NULL; //Pointer of prev page in file
 		unsigned long long next_page = NULL; //Pointer of next page in file
 		char data_type; //0 - Data, 1 - Index
-		int LSN; // Последняя запись транзакции на изменение в лог файл
-		int checksum; // Контрольная сумма
-		int slot_count; // Количество слотов
-		unsigned int upper; // Указатель на конец записей
-		unsigned int lower; // Указатель на начало таблицы слотов
+		int LSN; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+		int checksum; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+		int slot_count; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+		unsigned int upper; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+		unsigned int lower; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 
 		ifstream file(this->filepath, ios::binary | ios::in);
 		if (!file) {
@@ -169,8 +169,13 @@ public:
 		file_size = file.tellg();
 
 		if (file_size < FILE_METADATA_SIZE + this->page_size * page || page < 0) {
+<<<<<<< HEAD
 			cerr << "Ошибка номера страницы при получении метаданных";
 			return Page_meta{};
+=======
+			cerr << "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ";
+			return;
+>>>>>>> 8e330adf15bf1b2170a0913802c152f448017105
 		}
 
 		file.seekg(FILE_METADATA_SIZE + this->page_size * page, ios::beg);
@@ -232,7 +237,7 @@ public:
 		file.seekg(22);
 		file.read(reinterpret_cast<char*>(&read), sizeof(int));
 		if (read != this->read_flag) {
-			cerr << "Данные по доступам к файлу не совпадают!";
+			cerr << "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!";
 			return false;
 		}
 		file.close();
@@ -245,7 +250,7 @@ public:
 		file.seekg(23);
 		file.read(reinterpret_cast<char*>(&write), sizeof(bool));
 		if (write != this->write_flag) {
-			cerr << "Данные по доступу к файлу не совпадают!";
+			cerr << "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!";
 			return false;
 		}
 		file.close();
@@ -256,7 +261,7 @@ private:
 	bool read_flag, write_flag;
 	void set_read(char read) {
 		if (read != 0 && read != 1) {
-			cerr << "Неверные значения для флага чтения";
+			cerr << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ";
 			return;
 		}
 		ofstream file(this->filepath, ios::binary | ios::out);
@@ -267,7 +272,7 @@ private:
 	}
 	void set_write(char write) {
 		if (write != 0 && write != 1) {
-			cerr << "Неверные значения для флага записи";
+			cerr << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ";
 			return;
 		}
 		ofstream file(this->filepath, ios::binary | ios::out);
@@ -282,8 +287,8 @@ private:
 //void get_note()
 
 
-int main() {
-	char filepath[256] = "file.bin";  //файл создастся в текущей папке
+int main_main_main() {
+	char filepath[256] = "file.bin";  //пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 	cout << "Creating file: file.bin" << endl;
 	DataBase Test(filepath, PAGE_SIZE);
 	Test.make_metafile();

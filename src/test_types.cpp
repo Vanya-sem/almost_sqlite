@@ -1,154 +1,119 @@
-#include "types.h"
-#include<string>
-#include <exception>
-#include <cmath>
-#include <sstream>
+#include "serializer.h"
+#include "validator.h"
+#include <iostream>
+#include <iomanip>
 
-/*class ErrorType : public std::exception {
-private:
-	std::string message;
-public:
-	explicit ErrorType(const std::string& msg) : message(msg) {}
-	const char* what() const noexcept override {
-		return message.c_str();
-	}
-};
+void test_data(All_types type, const char* input, bool not_null = false, int max_length = 0) {
+    std::cout << "РўРµСЃС‚ ";
+    switch (type) {
+    case All_types::BIT: std::cout << "BIT"; break;
+    case All_types::TINYINT: std::cout << "TINYINT"; break;
+    case All_types::SMALLINT: std::cout << "SMALLINT"; break;
+    case All_types::INT: std::cout << "INT"; break;
+    case All_types::BIGINT: std::cout << "BIGINT"; break;
+    case All_types::FLOAT: std::cout << "FLOAT"; break;
+    case All_types::REAL: std::cout << "REAL"; break;
+    case All_types::DATETIME: std::cout << "DATETIME"; break;
+    case All_types::DATE: std::cout << "DATE"; break;
+    case All_types::TIME: std::cout << "TIME"; break;
+    case All_types::CHAR: std::cout << "CHAR"; break;
+    case All_types::VARCHAR: std::cout << "VARCHAR"; break;
+    case All_types::TEXT: std::cout << "TEXT"; break;
+    }
+    std::cout << "\n " << std::endl;
 
-bool test_notNull(char* symb) {
-	if not(symb) return 0;
-}
+    std::cout << "Р”Р°РЅРЅС‹Рµ: '" << input << "'" << std::endl;
 
-bool test_for_bit(char* bit, bool not_null) {
-	if (bit == NULL && not_null) return true;
-	if (bit == NULL && !not_null) return false;
-	if (bit != '0' && bit != '1') return false;
-	else return true;
-}
+    try {
+        if (!SimpleValidator::validate_before_write(input, type, not_null, max_length)) {
+            std::cout << "РЅРµ РїРѕРґС…РѕРґРёС‚ РґР»СЏ С‚РёРїР°" << std::endl;
+            std::cout << std::endl;
+            return;
+        }
+    }catch (const ErrorType& e) {
+            std::cout << " РѕС€РёР±РєР° РІР°Р»РёРґР°С†РёРё: " << e.what() << std::endl;
+            std::cout << std::endl;
+            return;
+    }catch (const std::exception& e) {
+            std::cout << " РЅРѕСѓ РЅРµР№Рј РѕС€РёР±РєР°: " << e.what() << std::endl;
+            std::cout << std::endl;
+            return;
+        }
 
-bool test_for_tinyint(char* tinyint, bool not_null) {
-	if (tinyint == NULL && not_null) return true;
-	if (tinyint == NULL && !not_null) return false;
-	if (strlen(tinyint) > 3) return 0;
-	for (di : tinyint) {
-		if (!isdigit(di))
-			return false;
-	}
-	if (strcmp("255", tinyint) && strlen(tinyint) == 3) return 1;
-	else if (strlen(tinyint) < 3) return 1;
-	else return 0;
-}
+    std::cout << "РЎР®Р”Рђ" << std::endl;
 
-bool test_for_smallint(char* smallint, bool not_null) {
-	if (smallint == NULL && not_null) return true;
-	if (smallint == NULL && !not_null) return false;
-	if (smallint[0] == '-') {
-		if (strlen(smallint) > 6) return false;
-		smallint++;
-		for (di : smallint) {
-			if (!isdigit(di))
-				return false;
-		}
-		if (strcmp("32768", smallint) >= 0 && strlen(smallint) == 5)return true;
-		else if (strlen(smallint) < 5) return true;
-		else return false;
-	}
+    uint8_t buffer[256];
+    size_t size = Serializer::serialize(type, input, buffer, max_length);
 
-	if (smallint[0] != '-') {
-		if (strlen(smallint) > 5) return false;
-		for (di : smallint) {
-			if (!isdigit(di))
-				return false;
-		}
-		else if (strcmp("32767", smallint) >= 0 && strlen(smallint) == 5) return true;
-		else if (strlen(smallint) < 5) return true;
-		else return false;
-	}
-}
+    std::cout << "Р‘Р°Р№С‚С‹ (" << size << "): ";
 
-bool test_for_int(char* integer, bool not_null) {
-	if (integer == NULL && not_null) return true;
-	if (integer == NULL && !not_null) return false;
-	if (integer[0] == '-') {
-		if (strlen(integer) > 11) return false;
-		integer++;
-		for (di : integer) {
-			if (!isdigit(di))
-				return false;
-		}
-		if (strcmp("2147483648", integer) >= 0 && strlen(integer) == 10)return true;
-		else if (strlen(integer) < 10) return true;
-		else return false;
-	}
+    std::cout << "HEX: ";
+    for (size_t i = 0; i < size; i++) {
+        std::cout << std::hex << std::setw(2) << std::setfill('0')
+            << static_cast<int>(buffer[i]) << " ";
+    }
 
-	if (integer[0] != '-') {
-		for (di : integer) {
-			if (!isdigit(di))
-				return false;
-		}
-		if (strlen(integer) > 10) return false;
-		else if (strcmp("2147483647", integer) >= 0 && strlen(integer) == 10) return true;
-		else if (strlen(integer) < 10) return true;
-		else return false;
-	}
+    std::cout << "| DEC: ";
+    for (size_t i = 0; i < size; i++) {
+        std::cout << std::dec << static_cast<int>(buffer[i]) << " ";
+    }
+    std::cout << std::endl << std::endl;
 }
 
 
-bool test_for_bigint(char* bigint, bool not_null) {
-	if (bigint == NULL && not_null) return true;
-	if (bigint == NULL && !not_null) return false;
-	if (bigint[0] == '-') {
-		if (strlen(bigint) > 19) return false;
-		bigint++;
-		for (di : bigint) {
-			if (!isdigit(di))
-				return false;
-		}
-		if (strcmp("9223372036854775808", bigint) >= 0 && strlen(bigint) == 19)return true;
-		else if (strlen(bigint) < 19) return true;
-		else return false;
-	}
+int main() {
 
-	if (bigint[0] != '-') {
-		for (di : bigint) {
-			if (!isdigit(di))
-				return false;
-		}
-		if (strlen(bigint) > 19) return false;
-		else if (strcmp("9223372036854775807", bigint) >= 0 && strlen(integer) == 19) return true;
-		else if (strlen(bigint) < 19) return true;
-		else return false;
-	}
-}
+    // BIT
+    test_data(BIT, "1");
+    test_data(BIT, "2"); 
 
-bool test_for_float(char* float_type, bool not_null) {
-	if (float_type == NULL && not_null) return true;
-	if (float_type == NULL && !not_null) return false;
-	for (di : float_type) {
-		if (!(isdigit(di) || di == '.' || di == '-'))
-			return false;
-	}
-	std::stringstream ss(float_type);
-	double value;
-	if (!(ss >> value)) {
-		trow ErrorType("Не удовлетворяет требованиями типа данных");
-		return false;
-	}
-	return true;
-}
+    // TINYINT
+    test_data(TINYINT, "100");
+    test_data(TINYINT, "300");  
 
-bool test_for_real(char* real, bool not_null) {
-	if (real == NULL && not_null) return true;
-	if (real == NULL && !not_null) return false;
-	for (di : real) {
-		if (!(isdigit(di) || di == '.' || di == '-'))
-			return false;
-	}
-	std::stringstream ss(real);
-	float value;
-	if (!(ss >> value)) {
-		trow ErrorType("Не удовлетворяет требованиями типа данных");
-		return false;
-	}
-	return true;
+    // SMALLINT
+    test_data(SMALLINT, "25000");
+    test_data(SMALLINT, "40000"); 
+
+    // INT
+    test_data(INT, "2147483647");
+    test_data(INT, "3000000000");  
+
+    // BIGINT
+    test_data(BIGINT, "9223372036854775807");
+    test_data(BIGINT, "9999999999999999999"); 
+
+    // FLOAT
+    test_data(FLOAT, "3.141592");
+    test_data(FLOAT, "3.14159265");  
+
+    // REAL
+    test_data(REAL, "3.141592653589793");
+    test_data(REAL, "3.1415926535897932"); 
+
+    // DATE
+    test_data(DATE, "2023-12-25");
+    test_data(DATE, "2023-13-01");  
+
+    // TIME
+    test_data(TIME, "14:30:00.500");
+    test_data(TIME, "25:00:00");  
+
+    // DATETIME
+    test_data(DATETIME, "2023-12-25 14:30:00.123456");
+    test_data(DATETIME, "2023-12-25 14:30:00.1234567");  
+
+    // CHAR
+    test_data(CHAR, "Hello", true, 10);
+    test_data(CHAR, "VeryLongString", true, 5);  
+
+    // VARCHAR
+    test_data(VARCHAR, "Test", true, 10);
+    test_data(VARCHAR, "TooLongText", true, 5);  
+
+    // TEXT
+    test_data(TEXT, "This is a long text");
+    test_data(TEXT, ""); 
+
+    return 0;
 }
-*/
