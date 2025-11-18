@@ -169,13 +169,10 @@ public:
 		file_size = file.tellg();
 
 		if (file_size < FILE_METADATA_SIZE + this->page_size * page || page < 0) {
-<<<<<<< HEAD
 			cerr << "Ошибка номера страницы при получении метаданных";
 			return Page_meta{};
-=======
 			cerr << "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ";
-			return;
->>>>>>> 8e330adf15bf1b2170a0913802c152f448017105
+			return Page_meta{};
 		}
 
 		file.seekg(FILE_METADATA_SIZE + this->page_size * page, ios::beg);

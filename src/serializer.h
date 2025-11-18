@@ -124,8 +124,7 @@ private:
 
         const char* dot_pos = strchr(input, '.');
         size_t size = 3;
-        if (dot_pos) size_t size = 6;
-        else size_t size = 3;
+        if (dot_pos) size = 6;
 
         *buffer = (uint8_t*)malloc(size);
 
@@ -154,8 +153,7 @@ private:
 
         const char* dot_pos = strchr(input, '.');
         size_t size = 7;
-        if (dot_pos) size_t size = 10;
-        else size_t size = 7;
+        if (dot_pos) size = 10;
 
         *buffer = (uint8_t*)malloc(size);
 

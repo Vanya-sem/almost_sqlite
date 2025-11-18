@@ -42,23 +42,23 @@ void test_data(All_types type, const char* input, bool not_null = false, int max
 
     std::cout << "СЮДА" << std::endl;
 
-    uint8_t** buffer = NULL;
-    size_t size = Serializer::serialize(type, input, buffer, max_length);
+    uint8_t* buffer;
+    size_t size = Serializer::serialize(type, input, &buffer, max_length);
 
     std::cout << "Байты (" << size << "): ";
 
     std::cout << "HEX: ";
     for (size_t i = 0; i < size; i++) {
         std::cout << std::hex << std::setw(2) << std::setfill('0')
-            << static_cast<int>((*buffer)[i]) << " ";
+            << static_cast<int>(buffer[i]) << " ";
     }
 
     std::cout << "| DEC: ";
     for (size_t i = 0; i < size; i++) {
-        std::cout << std::dec << static_cast<int>((*buffer)[i]) << " ";
+        std::cout << std::dec << static_cast<int>(buffer[i]) << " ";
     }
     std::cout << std::endl << std::endl;
-    free(*buffer);
+    free(buffer);
 }
 
 
