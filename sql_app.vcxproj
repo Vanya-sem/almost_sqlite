@@ -19,21 +19,31 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Command.cpp" />
     <ClCompile Include="src\Constraint_table.cpp" />
     <ClCompile Include="src\db.cpp" />
     <ClCompile Include="src\metadata.cpp" />
     <ClCompile Include="src\parser.cpp" />
     <ClCompile Include="src\Process_file.cpp" />
     <ClCompile Include="src\service_table.c" />
+    <ClCompile Include="src\service_table.cpp" />
+    <ClCompile Include="src\test_integration.cpp" />
     <ClCompile Include="src\test_types.cpp" />
     <ClCompile Include="src\types.cpp" />
+    <ClCompile Include="src\ValidationError.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Command.h" />
+    <ClInclude Include="src\db.h" />
     <ClInclude Include="src\metadata.h" />
     <ClInclude Include="src\parser.h" />
     <ClInclude Include="src\serializer.h" />
     <ClInclude Include="src\types.h" />
+    <ClInclude Include="src\ValidationError.h" />
     <ClInclude Include="src\validator.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="run_test.bat" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -59,7 +69,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">

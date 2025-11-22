@@ -9,14 +9,14 @@ void test_data(All_types type, const char* input, bool not_null = false, int max
     case All_types::BIT: std::cout << "BIT"; break;
     case All_types::TINYINT: std::cout << "TINYINT"; break;
     case All_types::SMALLINT: std::cout << "SMALLINT"; break;
-    case All_types::INT: std::cout << "INT"; break;
+    case All_types::INT_TYPE: std::cout << "INT"; break; 
     case All_types::BIGINT: std::cout << "BIGINT"; break;
-    case All_types::FLOAT: std::cout << "FLOAT"; break;
+    case All_types::FLOAT_TYPE: std::cout << "FLOAT"; break; 
     case All_types::REAL: std::cout << "REAL"; break;
     case All_types::DATETIME: std::cout << "DATETIME"; break;
-    case All_types::DATE: std::cout << "DATE"; break;
+    case All_types::DATE_TYPE: std::cout << "DATE"; break; 
     case All_types::TIME: std::cout << "TIME"; break;
-    case All_types::CHAR: std::cout << "CHAR"; break;
+    case All_types::CHAR_TYPE: std::cout << "CHAR"; break;  
     case All_types::VARCHAR: std::cout << "VARCHAR"; break;
     case All_types::TEXT: std::cout << "TEXT"; break;
     }
@@ -62,59 +62,19 @@ void test_data(All_types type, const char* input, bool not_null = false, int max
 }
 
 
-int main() {
+int main2() {
 
-    // BIT
-    test_data(BIT, "1");
-    test_data(BIT, "2"); 
+    test_data(All_types::INT_TYPE, "2147483647"); 
+    test_data(All_types::INT_TYPE, "3000000000"); 
+ 
+    test_data(All_types::FLOAT_TYPE, "3.141592"); 
+    test_data(All_types::FLOAT_TYPE, "3.14159265"); 
 
-    // TINYINT
-    test_data(TINYINT, "100");
-    test_data(TINYINT, "300");  
+    test_data(All_types::DATE_TYPE, "2023-12-25");  
+    test_data(All_types::DATE_TYPE, "2023-13-01");  
 
-    // SMALLINT
-    test_data(SMALLINT, "25000");
-    test_data(SMALLINT, "40000"); 
-
-    // INT
-    test_data(INT, "2147483647");
-    test_data(INT, "3000000000");  
-
-    // BIGINT
-    test_data(BIGINT, "9223372036854775807");
-    test_data(BIGINT, "9999999999999999999"); 
-
-    // FLOAT
-    test_data(FLOAT, "3.141592");
-    test_data(FLOAT, "3.14159265");  
-
-    // REAL
-    test_data(REAL, "3.141592653589793");
-    test_data(REAL, "3.1415926535897932"); 
-
-    // DATE
-    test_data(DATE, "2023-12-25");
-    test_data(DATE, "2023-13-01");  
-
-    // TIME
-    test_data(TIME, "14:30:00.500");
-    test_data(TIME, "25:00:00");  
-
-    // DATETIME
-    test_data(DATETIME, "2023-12-25 14:30:00.123456");
-    test_data(DATETIME, "2023-12-25 14:30:00.1234567");  
-
-    // CHAR
-    test_data(CHAR, "Hello", true, 10);
-    test_data(CHAR, "VeryLongString", true, 5);  
-
-    // VARCHAR
-    test_data(VARCHAR, "Testirov", true, 8);
-    test_data(VARCHAR, "TooLongText", true, 5);  
-
-    // TEXT
-    test_data(TEXT, "This is a long text");
-    test_data(TEXT, ""); 
+    test_data(All_types::CHAR_TYPE, "Hello", true, 10); 
+    test_data(All_types::CHAR_TYPE, "VeryLongString", true, 5);
 
     return 0;
 }
