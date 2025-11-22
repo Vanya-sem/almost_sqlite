@@ -390,7 +390,7 @@ void view_all_data() {
     view_all_relate();
 }
 
-int main() {
+int main4() {
     SetConsoleOutputCP(65001);
     
     // Инициализация файлов

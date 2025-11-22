@@ -1,26 +1,28 @@
-#include <cstring> //c����� (strlen � ��)
-#include <sstream> //��������� ������ (getline � ��)
-#include <vector> //������� ����
-#include <algorithm> //������ � ������������ (find, transform � ��)
-#include <cctype> //������������� �������� (::toupper, ::isdigit � ��)
+#include <cstring>
+#include <sstream>
+#include <vector>
+#include <algorithm>
+#include <cctype>
 #include "types.h"
 #include <iostream>
 #include <fstream>
 #include "metadata.h"
+#include "Command.h"
+#include "ValidationError.h"
 
 using namespace std;
 
-//������� ������� SQL
+//функция возвращает тип команды
 int parse_command(const string& command) {
     if (command.empty()) return -1;
 
-    string upper_command = command;//������� 
+    string upper_command = command;
     transform(upper_command.begin(), upper_command.end(), upper_command.begin(), ::toupper);
 
-    size_t first_char = upper_command.find_first_not_of(" ");//�������� ��� �������� 
+    size_t first_char = upper_command.find_first_not_of(" ");
     if (first_char == string::npos) return -1;
 
-    if (upper_command.compare(first_char, 6, "CREATE") == 0) { //�������� ��� ���������� � ��������� �����
+    if (upper_command.compare(first_char, 6, "CREATE") == 0) {
         return 0;
     }
     else if (upper_command.compare(first_char, 6, "SELECT") == 0) {
@@ -32,486 +34,330 @@ int parse_command(const string& command) {
     else if (upper_command.compare(first_char, 6, "DELETE") == 0) {
         return 3;
     }
+    else if (upper_command.compare(first_char, 6, "INSERT") == 0) {
+        return 4;
+    }
+    else if (upper_command.compare(first_char, 5, "ALTER") == 0) {
+        return 5;
+    }
 
     return -1;
 }
 
-//��������� ��� �������� �������� ������
-struct CellValue {
-    All_types type;
-    string data;  //������ ��� ������
-
-    CellValue(All_types t = INT, const string& d = "") : type(t), data(d) {}
-};//������������� �����
-
-//��������� ������������ ������ (����� ���������� �������� � ������� ������ ������)
-struct DynamicRecord {
-    vector<CellValue> values;  //������ �� ����� �������
-
-    //����������� ��� ��������
-    DynamicRecord(const vector<CellValue>& vals = {}) : values(vals) {}
-
-    //��������� �������� � ����� ������
-    void add_value(All_types type, const string& data) {
-        values.push_back(CellValue(type, data));
-    }
-
-    //��������� �������� ������� ��� ������ (��� ������)
-    string get_string_value(int column_index) const {
-        if (column_index < values.size()) { //�������� ������
-            return values[column_index].data;
-        }
-        return "";
-    }
-
-    //��������� �������� ������� ��� ������ ����� (��� �������� ��������)
-    int get_int_value(int column_index) const {
-        if (column_index < values.size()) {
-            try {
-                return stoi(values[column_index].data);//tring to integer
-            }
-            catch (...) {
-                return 0;
-            }
-        }
-        return 0;
-    }
-};
-
-//�������� �������
-struct CreateTableQuery {
+// Функция для создания CreateCommand из парсера
+unique_ptr<CreateCommand> parse_create_table_query(const string& command) {
     string table_name;
-    vector<Column> columns;   //������ ��������
-};
-
-//������� �������� �� ��� ������� �������� ������
-bool is_keyword(const string& table_name) {
-    vector<string> sql_keywords = {
-        "SELECT", "UPDATE", "DELETE", "INSERT", "WHERE", "FROM", "CREATE", "DROP",
-        "ALTER", "JOIN", "GROUP", "ORDER", "BY", "HAVING", "TABLE", "SET"
-    };
-
-    string upper_name = table_name;
-    transform(upper_name.begin(), upper_name.end(), upper_name.begin(), ::toupper);
-
-    return find(sql_keywords.begin(), sql_keywords.end(), upper_name) != sql_keywords.end(); //������ � �������
-}
-
-//������� �������� ������� CREATE TABLE
-CreateTableQuery parse_create_table_query(const string& command) {
-    CreateTableQuery query;//������� query ��� ���������
+    vector<string> column_names;
+    vector<string> data_types;
+    vector<bool> is_nullable;
 
     try {
-        //��������� ��� �������
         size_t table_start = command.find("TABLE") + 5;
         size_t paren_start = command.find("(");
 
-        if (table_start == string::npos || paren_start == string::npos) { //�������� �� ���� �������� 
-            cout << "Error: Invalid CREATE TABLE syntax" << endl;
-            return query;
+        if (table_start == string::npos || paren_start == string::npos) {
+            throw ValidationError(INVALID_SYNTAX, "Неверный синтаксис CREATE TABLE");
         }
 
-        //��������� � ������� ��� �������
-        string table_name = command.substr(table_start, paren_start - table_start);
-
-        //������ ������� �������
+        table_name = command.substr(table_start, paren_start - table_start);
         table_name.erase(0, table_name.find_first_not_of(" "));
         table_name.erase(table_name.find_last_not_of(" ") + 1);
 
-        if (table_name.empty()) { //�������� ����� �������
-            cout << "Error: Table name is empty" << endl;
-            return query;
+        if (table_name.empty()) {
+            throw ValidationError(INVALID_SYNTAX, "Имя таблицы не может быть пустым");
         }
 
-        query.table_name = table_name; //���������� ����� ������� � ��������� ����������
-
-        //��������� ����� �� ��������� (�� ��� � �������)
         string columns_part = command.substr(paren_start + 1, command.find_last_of(")") - paren_start - 1);
-
-        //������� ������� � ������ � �����
         columns_part.erase(0, columns_part.find_first_not_of(" "));
         columns_part.erase(columns_part.find_last_not_of(" ") + 1);
 
-        //��������� ������
-        stringstream ss(columns_part);//�������� ������ �� �����������
-        string column_definition;//����� ��� ������ ����������� �������
-        vector<string> column_names; //��������� ��������� ��� �������� ������������
+        stringstream ss(columns_part);
+        string column_definition;
+        vector<string> parsed_column_names;
 
-        //���� �������� ��������
-        while (getline(ss, column_definition, ',')) { //����������� ��������
+        while (getline(ss, column_definition, ',')) {
             column_definition.erase(0, column_definition.find_first_not_of(" "));
             column_definition.erase(column_definition.find_last_not_of(" ") + 1);
 
-            if (column_definition.empty()) continue;//������� ������ �����������
+            if (column_definition.empty()) continue;
 
-            //��������� ��� � ��� �������
             size_t first_space = column_definition.find(" ");
             if (first_space == string::npos) {
-                cout << "Error: Invalid column definition: " << column_definition << endl;
-                continue;
+                throw ValidationError(INVALID_SYNTAX, "Неверное определение колонки: " + column_definition);
             }
 
-            string column_name = column_definition.substr(0, first_space);//���������� ����� �����
-            string column_type_str = column_definition.substr(first_space + 1);//���������� ����
+            string column_name = column_definition.substr(0, first_space);
+            string column_type_str = column_definition.substr(first_space + 1);
 
-            //������� ������� � ����
             column_type_str.erase(0, column_type_str.find_first_not_of(" "));
             column_type_str.erase(column_type_str.find_last_not_of(" ") + 1);
 
-            //�������� ������������ ����� �������
-            if (find(column_names.begin(), column_names.end(), column_name) != column_names.end()) {
-                cout << "Error: Duplicate column name: " << column_name << endl;//���������� �������
-                continue;
+            if (find(parsed_column_names.begin(), parsed_column_names.end(), column_name) != parsed_column_names.end()) {
+                throw ValidationError(INVALID_SYNTAX, "Дублирующееся имя колонки: " + column_name);
             }
-            column_names.push_back(column_name);//��������� � ������
+            parsed_column_names.push_back(column_name);
 
-            //������������ ������� ��� (��� �������)
             string base_type = column_type_str;
             int size = 0;
 
-            //��������� ���� �� ������ � �������
             size_t paren_open = column_type_str.find("(");
             if (paren_open != string::npos) {
                 base_type = column_type_str.substr(0, paren_open);
-                size_t paren_close = column_type_str.find(")");//���� ���� ������ ��������� ��� ��� � ������
+                size_t paren_close = column_type_str.find(")");
                 if (paren_close != string::npos) {
                     string size_str = column_type_str.substr(paren_open + 1, paren_close - paren_open - 1);
                     try {
                         size = stoi(size_str);
                     }
                     catch (const exception&) {
-                        cout << "Error parsing CREATE TABLE" << endl;
-                        continue;
+                        throw ValidationError(INVALID_SYNTAX, "Неверный размер для колонки: " + column_name);
                     }
                 }
             }
 
-            //����������� ������ ���� � enum
             All_types column_type_id = get_type_from_string(base_type);
 
-            // �������� ��� VARCHAR ����� ������������� ������
-            if (column_type_id == VARCHAR && size <= 0) {
-                cout << "Error: VARCHAR must have a size for column " << column_name << endl;
-                continue;
+            if (column_type_id == All_types::VARCHAR && size <= 0) {
+                throw ValidationError(INVALID_SYNTAX, "VARCHAR должен иметь размер для колонки " + column_name);
             }
 
-            //��� CHAR
-            if (column_type_id == CHAR && size <= 0) {
+            if (column_type_id == All_types::CHAR_TYPE && size <= 0) {
                 size = 1;
             }
 
-            //�������� � ���������� �������
-            Column column = { column_name, column_type_id, size };
-            query.columns.push_back(column);//� ������
-            cout << "Column: " << column_name << " Type: " << base_type << " Size: " << size << endl;
+            column_names.push_back(column_name);
+            data_types.push_back(column_type_str);
+            is_nullable.push_back(true); 
         }
 
-        if (query.columns.empty()) {
-            cout << "Error: No valid columns defined" << endl;
+        if (column_names.empty()) {
+            throw ValidationError(INVALID_SYNTAX, "Таблица должна иметь хотя бы одну колонку");
         }
 
+    }
+    catch (const ValidationError&) {
+        throw;
     }
     catch (const exception& e) {
-        cout << "Error parsing CREATE TABLE: " << e.what() << endl;
+        throw ValidationError(INVALID_SYNTAX, "Ошибка парсинга CREATE TABLE: " + string(e.what()));
     }
 
-    return query;
+    return make_unique<CreateCommand>(table_name, column_names, data_types, is_nullable);
 }
 
-//������� ���������� ���������� �������
-void save_table_metadata(const CreateTableQuery& query) {
-    serialize_metadata(query.table_name, query.columns, 0);
-}
-
-//������� �������� ���������� �������
-bool load_table_metadata(const string& table_name, vector<Column>& columns) {
-    uint64_t record_count;
-    return deserialize_metadata(table_name, columns, record_count);
-}
-
-//������� ���������� ������ �� ����� 
-void read_data_from_file(const string& filename, const vector<Column>& columns, vector<DynamicRecord>& records) {
-    ifstream file(filename, ios::binary);//�������� �����
-
-    if (file.is_open()) { 
-        int record_count;
-        file.read(reinterpret_cast<char*>(&record_count), sizeof(record_count));
-
-        records.clear();
-
-        for (int i = 0; i < record_count; ++i) {
-            DynamicRecord record;
-
-            //������ �������� ��� ������� ������� �������� ��� ����
-            for (const auto& column : columns) {
-                //��������� ������������� �����
-                if (column.type == INT || column.type == TINYINT || column.type == SMALLINT || column.type == BIGINT) {
-                    int int_value;
-                    file.read(reinterpret_cast<char*>(&int_value), sizeof(int_value));
-                    record.add_value(column.type, to_string(int_value));
-                }
-                //��������� ������� �����
-                else if (column.type == FLOAT || column.type == REAL) {
-                    float float_value;
-                    file.read(reinterpret_cast<char*>(&float_value), sizeof(float_value));
-                    record.add_value(column.type, to_string(float_value));
-                }
-                //��������� ��������� �����
-                else if (column.type == VARCHAR || column.type == CHAR || column.type == TEXT) {
-                    int string_size;
-                    file.read(reinterpret_cast<char*>(&string_size), sizeof(string_size));
-
-                    char* string_buffer = new char[string_size + 1];
-                    file.read(string_buffer, string_size);
-                    string_buffer[string_size] = '\0';
-                    record.add_value(column.type, string(string_buffer));
-                    delete[] string_buffer;
-                }
-                //��������� ���� � �������
-                else if (column.type == DATETIME || column.type == SMALLDATETIME ||
-                    column.type == DATE || column.type == TIME) {
-                    // ��� ��������� ����� ������ ��� ������ (���������)
-                    int data_size;
-                    file.read(reinterpret_cast<char*>(&data_size), sizeof(data_size));
-
-                    char* buffer = new char[data_size + 1];
-                    file.read(buffer, data_size);
-                    buffer[data_size] = '\0';
-                    record.add_value(column.type, string(buffer));
-                    delete[] buffer;
-                }
-                //��������� BIT
-                else if (column.type == BIT) {
-                    char bit_value;
-                    file.read(&bit_value, sizeof(bit_value));
-                    record.add_value(column.type, to_string(bit_value));
-                }
-                //��������� ����������� �����
-                else {
-                    //��� ���������������� ������ ��� ������
-                    int data_size;
-                    file.read(reinterpret_cast<char*>(&data_size), sizeof(data_size));
-
-                    char* buffer = new char[data_size + 1];
-                    file.read(buffer, data_size);
-                    buffer[data_size] = '\0';
-                    record.add_value(column.type, string(buffer));
-                    delete[] buffer;
-                }
-            }
-
-            records.push_back(record);
-        }
-
-        file.close();
-    }
-    else {
-        cerr << "Error: unable to open file for reading." << endl;
-    }
-}
-
-//������� ������ ������ � ����
-void write_data_to_file(const string& filename, const vector<Column>& columns, vector<DynamicRecord>& records) {
-    ofstream file(filename, ios::binary | ios::trunc);
-
-    if (file.is_open()) {
-        //������ ���������� �������
-        int record_count = static_cast<int>(records.size());  
-        file.write(reinterpret_cast<const char*>(&record_count), sizeof(record_count));
-
-        //���� �� ���� �������
-        for (const auto& record : records) {  
-            //���� �� ���� �������� ������
-            for (size_t i = 0; i < columns.size(); i++) { 
-                const auto& column = columns[i];  
-                const auto& cell = record.values[i];  
-
-                //��������� ������������� �����
-                if (column.type == INT || column.type == TINYINT || column.type == SMALLINT || column.type == BIGINT) {  
-                    int int_value = record.get_int_value(static_cast<int>(i)); 
-                    file.write(reinterpret_cast<const char*>(&int_value), sizeof(int_value));
-                }
-                //�������
-                else if (column.type == FLOAT || column.type == REAL) {
-                    float float_value = stof(cell.data);
-                    file.write(reinterpret_cast<const char*>(&float_value), sizeof(float_value));
-                }
-                //���������
-                else if (column.type == VARCHAR || column.type == CHAR || column.type == TEXT) {
-                    int string_size = static_cast<int>(cell.data.size());  // ����� ����������
-                    file.write(reinterpret_cast<const char*>(&string_size), sizeof(string_size));
-                    file.write(cell.data.c_str(), string_size);
-                }
-                else if (column.type == BIT) {
-                    char bit_value = static_cast<char>(stoi(cell.data));
-                    file.write(&bit_value, sizeof(bit_value));
-                }
-                //�����������
-                else {
-                    int data_size = static_cast<int>(cell.data.size());  
-                    file.write(reinterpret_cast<const char*>(&data_size), sizeof(data_size));
-                    file.write(cell.data.c_str(), data_size);
-                }
-            }
-        }
-
-        file.close();
-    }
-    else {
-        cerr << "Error: unable to open file for writing." << endl;
-    }
-}
-
-//������� ��������� ������� CREATE
-void process_create_command(const string& command) {
-    CreateTableQuery query = parse_create_table_query(command);//�������
-
-    //��������� ���������� ��������
-    if (query.table_name.empty() || query.columns.empty()) {
-        cout << "Error: Invalid table definition" << endl;//��������� ��� ������ ������� ������ ��� ������� � ���� �� ���� �������
-        return;
-    }
-
-    //�������� �� �������� �����
-    if (is_keyword(query.table_name)) {
-        cout << "Error: Table name '" << query.table_name << "' is a reserved SQL keyword." << endl;
-        return;
-    }
-
-    //��������� �� ���������� �� ��� �������
-    ifstream test_file(query.table_name + ".dat");
-    if (test_file.good()) {
-        cout << "Error: Table '" << query.table_name << "' already exists." << endl;
-        test_file.close();
-        return;
-    }
-
-    //������������� ��������
-    cout << "Creating table: " << query.table_name << " with " << query.columns.size() << " columns" << endl;
-
-    //������� ������ ���� ������ ��� �������
-    vector<DynamicRecord> records;
-    write_data_to_file(query.table_name + ".dat", query.columns, records);
-
-    //��������� ����������
-    save_table_metadata(query);
-
-    cout << "Table created successfully!" << endl;
-}
-
-//������� ��������� ������� SELECT 
-void process_select_command(const string& command) {
+// Функция для создания SelectCommand
+unique_ptr<SelectCommand> parse_select_query(const string& command) {
     string upper_command = command;
     transform(upper_command.begin(), upper_command.end(), upper_command.begin(), ::toupper);
 
-    //��������� ��� �������
+    size_t select_pos = upper_command.find("SELECT");
+    if (select_pos == string::npos) {
+        throw ValidationError(INVALID_SYNTAX, "Отсутствует SELECT в запросе");
+    }
+
+    size_t from_pos = upper_command.find("FROM");
+    if (from_pos == string::npos) {
+        throw ValidationError(INVALID_SYNTAX, "Отсутствует FROM в SELECT запросе");
+    }
+
+    // Извлекаем список колонок
+    string columns_str = command.substr(select_pos + 6, from_pos - (select_pos + 6));
+    columns_str.erase(0, columns_str.find_first_not_of(" \t"));
+    columns_str.erase(columns_str.find_last_not_of(" \t") + 1);
+
+    // Проверяем, что есть колонки
+    if (columns_str.empty()) {
+        throw ValidationError(INVALID_SYNTAX, "SELECT должен содержать список колонок или *");
+    }
+
+    vector<string> columns;
+    stringstream ss_columns(columns_str);
+    string column;
+    while (getline(ss_columns, column, ',')) {
+        column.erase(0, column.find_first_not_of(" \t"));
+        column.erase(column.find_last_not_of(" \t") + 1);
+        if (!column.empty()) {
+            columns.push_back(column);
+        }
+    }
+
+    if (columns.empty()) {
+        columns.push_back("*");
+    }
+
+    string table_name = command.substr(from_pos + 4);
+    table_name.erase(0, table_name.find_first_not_of(" "));
+
+    // Убираем возможные условия WHERE, ORDER BY и тд
+    size_t where_pos_global = upper_command.find("WHERE", from_pos);
+    size_t order_pos = upper_command.find("ORDER BY", from_pos);
+    size_t limit_pos = upper_command.find("LIMIT", from_pos);
+
+    size_t end_pos = string::npos;
+    if (where_pos_global != string::npos) end_pos = min(end_pos, where_pos_global);
+    if (order_pos != string::npos) end_pos = min(end_pos, order_pos);
+    if (limit_pos != string::npos) end_pos = min(end_pos, limit_pos);
+
+    if (end_pos != string::npos) {
+        table_name = command.substr(from_pos + 4, end_pos - (from_pos + 4));
+    }
+
+    table_name.erase(0, table_name.find_first_not_of(" "));
+    table_name.erase(table_name.find_last_not_of(" \t;") + 1);
+
+    if (table_name.empty()) {
+        throw ValidationError(INVALID_SYNTAX, "Имя таблицы не может быть пустым");
+    }
+
+    vector<string> where_conditions;
+    vector<string> order_by;
+    int limit = -1;
+
+    // Парсим WHERE если есть
+    if (where_pos_global != string::npos) {
+        size_t where_start = where_pos_global + 5;
+        string where_clause = command.substr(where_start);
+
+        // Убираем ORDER BY и LIMIT из WHERE условия
+        size_t where_end = where_clause.length();
+        size_t order_in_where = where_clause.find("ORDER BY");
+        size_t limit_in_where = where_clause.find("LIMIT");
+
+        if (order_in_where != string::npos) where_end = min(where_end, order_in_where);
+        if (limit_in_where != string::npos) where_end = min(where_end, limit_in_where);
+
+        where_clause = where_clause.substr(0, where_end);
+        where_clause.erase(0, where_clause.find_first_not_of(" \t"));
+        where_clause.erase(where_clause.find_last_not_of(" \t") + 1);
+
+        if (!where_clause.empty()) {
+            where_conditions.push_back(where_clause);
+        }
+    }
+
+    return make_unique<SelectCommand>(columns, table_name, where_conditions, order_by, limit);
+}
+
+// Функция для создания InsertCommand
+unique_ptr<InsertCommand> parse_insert_query(const string& command) {
+    string upper_command = command;
+    transform(upper_command.begin(), upper_command.end(), upper_command.begin(), ::toupper);
+
+    size_t into_pos = upper_command.find("INTO");
+    if (into_pos == string::npos) {
+        throw ValidationError(INVALID_SYNTAX, "Отсутствует INTO в INSERT запросе");
+    }
+
+    size_t values_pos = upper_command.find("VALUES");
+    if (values_pos == string::npos) {
+        throw ValidationError(INVALID_SYNTAX, "Отсутствует VALUES в INSERT запросе");
+    }
+
+    string table_part = command.substr(into_pos + 4, values_pos - (into_pos + 4));
+    table_part.erase(0, table_part.find_first_not_of(" "));
+    table_part.erase(table_part.find_last_not_of(" ") + 1);
+
     string table_name;
-    size_t from_pos = upper_command.find("FROM");//����� �������� ����� from
-    if (from_pos != string::npos) {
-        table_name = command.substr(from_pos + 4);//���������� ����� �������
-        table_name.erase(0, table_name.find_first_not_of(" "));//������� ����� �������
-        table_name.erase(table_name.find_last_not_of(" ;") + 1);
+    vector<string> column_names;
+
+    // Проверяем есть ли список колонок
+    size_t paren_open = table_part.find("(");
+    if (paren_open != string::npos) {
+        table_name = table_part.substr(0, paren_open);
+        table_name.erase(0, table_name.find_first_not_of(" "));
+        table_name.erase(table_name.find_last_not_of(" ") + 1);
+
+        size_t paren_close = table_part.find(")");
+        if (paren_close == string::npos) {
+            throw ValidationError(INVALID_SYNTAX, "Незакрытые скобки в списке колонок INSERT");
+        }
+
+        string columns_str = table_part.substr(paren_open + 1, paren_close - paren_open - 1);
+        stringstream ss(columns_str);
+        string column;
+        while (getline(ss, column, ',')) {
+            column.erase(0, column.find_first_not_of(" "));
+            column.erase(column.find_last_not_of(" ") + 1);
+            if (!column.empty()) {
+                column_names.push_back(column);
+            }
+        }
     }
     else {
-        cout << "Error: Invalid SELECT syntax - missing FROM" << endl;//�������� ������� from
-        return;
+        table_name = table_part;
     }
 
-    //�������� ����� �������
     if (table_name.empty()) {
-        cout << "Error: Table name is empty" << endl;
-        return;
+        throw ValidationError(INVALID_SYNTAX, "Имя таблицы не может быть пустым");
     }
 
-    cout << "Selecting from table: " << table_name << endl;
+    // Парсим значения
+    string values_part = command.substr(values_pos + 6);
+    values_part.erase(0, values_part.find_first_not_of(" "));
 
-    //��������� ���������� �������
-    vector<Column> table_columns;
-    if (!load_table_metadata(table_name, table_columns)) { //��������� ��������� ������� �� .meta �����
-        cout << "Error: Cannot load metadata for table '" << table_name << "'" << endl;
-        cout << "Table might not exist or metadata is corrupted" << endl;
-        return;
+    size_t values_start = values_part.find("(");
+    size_t values_end = values_part.find(")");
+    if (values_start == string::npos || values_end == string::npos) {
+        throw ValidationError(INVALID_SYNTAX, "Неверный формат значений в INSERT");
     }
 
-    //������ ������ �������
-    vector<DynamicRecord> records;
-    read_data_from_file(table_name + ".dat", table_columns, records);
-
-    if (records.empty()) {
-        cout << "Table is empty" << endl;
-        return;
-    }
-
-    //������� ��������� �������
-    cout << "\n=== " << table_name << " ===" << endl;
-
-    //������� �������� ��������
-    for (const auto& column : table_columns) {
-        cout << column.name << "\t| ";
-    }
-    cout << endl;
-
-    //������� �����������
-    for (int i = 0; i < table_columns.size(); i++) {
-        cout << "--------\t| ";
-    }
-    cout << endl;
-
-    //������� ������ �������
-    for (const auto& record : records) {
-        for (int i = 0; i < table_columns.size(); i++) {
-            cout << record.get_string_value(i) << "\t| ";
-        }
-        cout << endl;
-    }
-
-    cout << "Total records: " << records.size() << endl;//����� ����������
-}
-
-struct WhereCondition {
-    string column_name;
-    string operator_; // "=", ">", "<", ">=", "<=", "!="
+    string values_str = values_part.substr(values_start + 1, values_end - values_start - 1);
+    vector<string> values;
+    stringstream ss_values(values_str);
     string value;
-};
 
+    while (getline(ss_values, value, ',')) {
+        value.erase(0, value.find_first_not_of(" "));
+        value.erase(value.find_last_not_of(" ") + 1);
 
-bool check_where_condition(const DynamicRecord& record,
-    const vector<Column>& columns,
-    const WhereCondition& condition) {
-    int column_index = -1;
-    for (int i = 0; i < columns.size(); i++) {
-        if (columns[i].name == condition.column_name) {
-            column_index = i;
-            break;
+        // Убираем кавычки если есть
+        if (!value.empty() && value[0] == '\'' && value.back() == '\'') {
+            value = value.substr(1, value.length() - 2);
         }
+
+        values.push_back(value);
     }
 
-    if (column_index == -1) return false;
+    vector<vector<string>> values_vector = { values };
 
-    string record_value = record.get_string_value(column_index);
-
-    if (condition.operator_ == "=") {
-        return record_value == condition.value;
-    }
-    else if (condition.operator_ == "!=") {
-        return record_value != condition.value;
-    }
-    else if (condition.operator_ == ">") {
-        return record.get_int_value(column_index) > stoi(condition.value);
-    }
-    else if (condition.operator_ == "<") {
-        return record.get_int_value(column_index) < stoi(condition.value);
-    }
-
-    return false;
+    return make_unique<InsertCommand>(table_name, column_names, values_vector);
 }
 
-vector<pair<string, string>> parse_set_clause(const string& set_part) {
-    vector<pair<string, string>> updates;
-    stringstream ss(set_part);
-    string assignment;
+// Функция для создания UpdateCommand
+unique_ptr<UpdateCommand> parse_update_query(const string& command) {
+    string upper_command = command;
+    transform(upper_command.begin(), upper_command.end(), upper_command.begin(), ::toupper);
 
-    while (getline(ss, assignment, ',')) {
+    size_t set_pos = upper_command.find("SET");
+    if (set_pos == string::npos) {
+        throw ValidationError(INVALID_SYNTAX, "Отсутствует SET в UPDATE запросе");
+    }
+
+    string table_name = command.substr(6, set_pos - 6); 
+    table_name.erase(0, table_name.find_first_not_of(" "));
+    table_name.erase(table_name.find_last_not_of(" ") + 1);
+
+    if (table_name.empty()) {
+        throw ValidationError(INVALID_SYNTAX, "Имя таблицы не может быть пустым");
+    }
+
+    string set_part;
+    size_t where_pos = upper_command.find("WHERE");
+
+    if (where_pos != string::npos) {
+        set_part = command.substr(set_pos + 3, where_pos - (set_pos + 3));
+    }
+    else {
+        set_part = command.substr(set_pos + 3);
+    }
+
+    vector<pair<string, string>> set_clauses;
+    vector<string> where_conditions;
+
+    // Парсим SET clauses
+    stringstream ss_set(set_part);
+    string assignment;
+    while (getline(ss_set, assignment, ',')) {
         size_t eq_pos = assignment.find('=');
         if (eq_pos != string::npos) {
             string column = assignment.substr(0, eq_pos);
@@ -522,240 +368,207 @@ vector<pair<string, string>> parse_set_clause(const string& set_part) {
             value.erase(0, value.find_first_not_of(" "));
             value.erase(value.find_last_not_of(" ") + 1);
 
-            if (!value.empty() && value[0] == '\'' && value.back() == '\'') {
-                value = value.substr(1, value.size() - 2);
-            }
-
-            updates.push_back({ column, value });
-        }
-    }
-    return updates;
-}
-
-WhereCondition parse_where_clause(const string& where_part) {
-    WhereCondition condition;
-    vector<string> operators = { "=", "!=", ">", "<", ">=", "<=" };
-
-    for (const auto& op : operators) {
-        size_t op_pos = where_part.find(op);
-        if (op_pos != string::npos) {
-            condition.column_name = where_part.substr(0, op_pos);
-            condition.value = where_part.substr(op_pos + op.length());
-            condition.operator_ = op;
-
-            condition.column_name.erase(0, condition.column_name.find_first_not_of(" "));
-            condition.column_name.erase(condition.column_name.find_last_not_of(" ") + 1);
-            condition.value.erase(0, condition.value.find_first_not_of(" "));
-            condition.value.erase(condition.value.find_last_not_of(" ") + 1);
-
-            if (!condition.value.empty() && condition.value[0] == '\'' && condition.value.back() == '\'') {
-                condition.value = condition.value.substr(1, condition.value.size() - 2);
-            }
-
-            break;
+            set_clauses.push_back({ column, value });
         }
     }
 
-    return condition;
-}
-
-void process_update_command(const string& command) {
-    string upper_command = command;
-    transform(upper_command.begin(), upper_command.end(), upper_command.begin(), ::toupper);
-
-    size_t update_pos = upper_command.find("UPDATE");
-    size_t set_pos = upper_command.find("SET");
-    size_t where_pos = upper_command.find("WHERE");
-
-    if (update_pos == string::npos || set_pos == string::npos) {
-        cout << "Error: Invalid UPDATE syntax" << endl;
-        return;
-    }
-
-    string table_name = command.substr(update_pos + 6, set_pos - (update_pos + 6));
-    table_name.erase(0, table_name.find_first_not_of(" "));
-    table_name.erase(table_name.find_last_not_of(" ") + 1);
-
-    if (table_name.empty()) {
-        cout << "Error: Table name is empty" << endl;
-        return;
-    }
-
-    string set_part;
+    // Парсим WHERE если есть
     if (where_pos != string::npos) {
-        set_part = command.substr(set_pos + 3, where_pos - (set_pos + 3));
-    }
-    else {
-        set_part = command.substr(set_pos + 3);
-    }
-
-    auto updates = parse_set_clause(set_part);
-
-    WhereCondition where_condition;
-    bool has_where = (where_pos != string::npos);
-    if (has_where) {
         string where_part = command.substr(where_pos + 5);
-        where_condition = parse_where_clause(where_part);
+        where_part.erase(0, where_part.find_first_not_of(" "));
+        where_conditions.push_back(where_part);
     }
 
-    cout << "Updating table: " << table_name << endl;
-
-    vector<Column> table_columns;
-    if (!load_table_metadata(table_name, table_columns)) {
-        cout << "Error: Cannot load metadata for table '" << table_name << "'" << endl;
-        return;
-    }
-
-    vector<DynamicRecord> records;
-    read_data_from_file(table_name + ".dat", table_columns, records);
-
-    int updated_count = 0;
-
-    for (auto& record : records) {
-        if (has_where && !check_where_condition(record, table_columns, where_condition)) {
-            continue;
-        }
-
-        for (const auto& update : updates) {
-            int column_index = -1;
-            for (int i = 0; i < table_columns.size(); i++) {
-                if (table_columns[i].name == update.first) {
-                    column_index = i;
-                    break;
-                }
-            }
-
-            if (column_index != -1 && column_index < record.values.size()) {
-                record.values[column_index].data = update.second;
-                updated_count++;
-            }
-        }
-    }
-
-    write_data_to_file(table_name + ".dat", table_columns, records);
-    cout << "Updated " << updated_count << " records successfully!" << endl;
+    return make_unique<UpdateCommand>(table_name, set_clauses, where_conditions);
 }
 
-
-void process_delete_command(const string& command) {
+// Функция для создания DeleteCommand
+unique_ptr<DeleteCommand> parse_delete_query(const string& command) {
     string upper_command = command;
     transform(upper_command.begin(), upper_command.end(), upper_command.begin(), ::toupper);
 
     size_t from_pos = upper_command.find("FROM");
-    size_t where_pos = upper_command.find("WHERE");
-
     if (from_pos == string::npos) {
-        cout << "Error: Invalid DELETE syntax" << endl;
-        return;
+        throw ValidationError(INVALID_SYNTAX, "Отсутствует FROM в DELETE запросе");
     }
+
+    // Извлекаем часть после FROM
+    string after_from = command.substr(from_pos + 4);
+    after_from.erase(0, after_from.find_first_not_of(" "));
 
     string table_name;
+    vector<string> where_conditions;
+
+    size_t where_pos = upper_command.find("WHERE", from_pos + 4);
+
     if (where_pos != string::npos) {
+        // Извлекаем имя таблицы 
         table_name = command.substr(from_pos + 4, where_pos - (from_pos + 4));
+        table_name.erase(0, table_name.find_first_not_of(" "));
+        table_name.erase(table_name.find_last_not_of(" \t") + 1);
+
+        // Извлекаем условие WHERE
+        string where_part = command.substr(where_pos + 5);
+        where_part.erase(0, where_part.find_first_not_of(" "));
+        where_part.erase(where_part.find_last_not_of(" \t;") + 1);
+        where_conditions.push_back(where_part);
     }
     else {
-        table_name = command.substr(from_pos + 4);
+        // Нет WHERE
+        table_name = after_from;
+        table_name.erase(table_name.find_last_not_of(" \t;") + 1);
     }
 
+    // Очищаем имя таблицы от пробелов
     table_name.erase(0, table_name.find_first_not_of(" "));
-    table_name.erase(table_name.find_last_not_of(" ;") + 1);
+    table_name.erase(table_name.find_last_not_of(" \t") + 1);
 
     if (table_name.empty()) {
-        cout << "Error: Table name is empty" << endl;
-        return;
+        throw ValidationError(INVALID_SYNTAX, "Имя таблицы не может быть пустым");
     }
 
-    WhereCondition where_condition;
-    bool has_where = (where_pos != string::npos);
-    if (has_where) {
-        string where_part = command.substr(where_pos + 5);
-        where_condition = parse_where_clause(where_part);
-    }
-
-    cout << "Deleting from table: " << table_name << endl;
-
-    vector<Column> table_columns;
-    if (!load_table_metadata(table_name, table_columns)) {
-        cout << "Error: Cannot load metadata for table '" << table_name << "'" << endl;
-        return;
-    }
-
-    vector<DynamicRecord> records;
-    read_data_from_file(table_name + ".dat", table_columns, records);
-
-    vector<DynamicRecord> remaining_records;
-    int deleted_count = 0;
-
-    for (const auto& record : records) {
-        if (has_where && check_where_condition(record, table_columns, where_condition)) {
-            deleted_count++;
-        }
-        else {
-            remaining_records.push_back(record);
-        }
-    }
-
-    write_data_to_file(table_name + ".dat", table_columns, remaining_records);
-    cout << "Deleted " << deleted_count << " records successfully!" << endl;
+    return make_unique<DeleteCommand>(table_name, where_conditions);
 }
 
-int parse() {
-    string command; 
+// Функция для создания AlterCommand
+unique_ptr<AlterCommand> parse_alter_query(const string& command) {
+    string upper_command = command;
+    transform(upper_command.begin(), upper_command.end(), upper_command.begin(), ::toupper);
+
+    size_t pos = 0;
+    while (pos < upper_command.length() && isspace(upper_command[pos])) ++pos;
+
+    if (upper_command.substr(pos, 5) != "ALTER") {
+        throw ValidationError(INVALID_SYNTAX, "Ожидается 'ALTER' в запросе: " + command);
+    }
+    pos += 5;
+
+    while (pos < upper_command.length() && isspace(upper_command[pos])) ++pos;
+
+    if (upper_command.substr(pos, 5) != "TABLE") {
+        throw ValidationError(INVALID_SYNTAX, "Ожидается 'TABLE' в ALTER запросе: " + command);
+    }
+    pos += 5;
+
+    while (pos < upper_command.length() && isspace(upper_command[pos])) ++pos;
+
+    // Извлекаем имя таблицы
+    size_t table_start = pos;
+    while (pos < upper_command.length() && !isspace(upper_command[pos]) && upper_command[pos] != ';') {
+        ++pos;
+    }
+
+    if (table_start == pos) {
+        throw ValidationError(INVALID_SYNTAX, "Отсутствует имя таблицы в ALTER запросе: " + command);
+    }
+
+    string table_name = command.substr(table_start, pos - table_start);
+
+    while (pos < upper_command.length() && isspace(upper_command[pos])) ++pos;
+
+    // Определяем тип операции
+    AlterCommand::OperationType operation_type;
+    string column_name, data_type;
+
+    if (upper_command.substr(pos, 3) == "ADD") {
+        operation_type = AlterCommand::ADD_COLUMN;
+        pos += 3;
+        while (pos < upper_command.length() && isspace(upper_command[pos])) ++pos;
+
+        // Пропускаем ключевое слово COLUMN если есть
+        if (upper_command.substr(pos, 6) == "COLUMN") {
+            pos += 6;
+            while (pos < upper_command.length() && isspace(upper_command[pos])) ++pos;
+        }
+
+        // Извлекаем имя колонки
+        size_t column_start = pos;
+        while (pos < upper_command.length() && !isspace(upper_command[pos]) && upper_command[pos] != ';') {
+            ++pos;
+        }
+        column_name = command.substr(column_start, pos - column_start);
+
+        // Оставшаяся часть - тип данных
+        while (pos < upper_command.length() && isspace(upper_command[pos])) ++pos;
+        data_type = command.substr(pos);
+    }
+    else if (upper_command.substr(pos, 4) == "DROP") {
+        operation_type = AlterCommand::DROP_COLUMN;
+        pos += 4;
+        while (pos < upper_command.length() && isspace(upper_command[pos])) ++pos;
+
+        // Пропускаем ключевое слово COLUMN если есть
+        if (upper_command.substr(pos, 6) == "COLUMN") {
+            pos += 6;
+            while (pos < upper_command.length() && isspace(upper_command[pos])) ++pos;
+        }
+
+        // Извлекаем имя колонки
+        size_t column_start = pos;
+        while (pos < upper_command.length() && !isspace(upper_command[pos]) && upper_command[pos] != ';') {
+            ++pos;
+        }
+        column_name = command.substr(column_start, pos - column_start);
+    }
+    else {
+        throw ValidationError(INVALID_SYNTAX, "Неизвестная операция в ALTER запросе: " + command);
+    }
+
+    return make_unique<AlterCommand>(table_name, operation_type, column_name, data_type, "", true);
+}
+
+// Главная функция парсера которая возвращает Command
+unique_ptr<Command> parse_sql_command(const string& command) {
+    int command_type = parse_command(command);
+
+    switch (command_type) {
+    case 0: 
+        return parse_create_table_query(command);
+    case 1: 
+        return parse_select_query(command);
+    case 2: 
+        return parse_update_query(command);
+    case 3: 
+        return parse_delete_query(command);
+    case 4: 
+        return parse_insert_query(command);
+    case 5: 
+        return parse_alter_query(command);
+    default:
+        throw ValidationError(INVALID_SYNTAX, "Неизвестная или неподдерживаемая команда: " + command);
+    }
+}
+
+// Старая функция main для тестирования
+int main3() {
+    string command;
 
     while (true) {
         cout << "\n=== Almost SQLite ===" << endl;
-        cout << "Available commands:" << endl;
-        cout << "1. CREATE TABLE table_name (col1 TYPE, col2 TYPE, ...)" << endl;
-        cout << "2. SELECT * FROM table_name" << endl;
-        cout << "3. UPDATE table_name SET col = value WHERE condition" << endl;
-        cout << "4. DELETE FROM table_name WHERE condition" << endl;
-        cout << "5. EXIT" << endl;
-        cout << "Enter your SQL command (or 'EXIT' to quit): ";
-
+        cout << "Введите SQL команду (или 'EXIT' для выхода): ";
         getline(cin, command);
 
-        if (!command.empty() && command.back() == ';') { 
-            command.pop_back();
-        }
-
-        //�����
         if (command == "EXIT" || command == "exit") {
-            cout << "Goodbye!" << endl;
+            cout << "Выход..." << endl;
             break;
         }
 
-        //������� ������ ������
         if (command.empty()) continue;
 
-        //����������� ���� �������
-        int command_type = parse_command(command);
-
-        //��������� ������ � ����� try-catch
         try {
-            if (command_type == 0) {
-                process_create_command(command);
-            }
-            else if (command_type == 1) {
-                process_select_command(command);
-            }
-            else if (command_type == 2) {
-                process_update_command(command);
-            }
-            else if (command_type == 3) {
-                process_delete_command(command);
-            }
-            else {
-                cout << "Error: Invalid or unsupported command!" << endl;
-                cout << "Supported commands: CREATE, SELECT, UPDATE, DELETE" << endl;
-            }
+            auto sql_command = parse_sql_command(command);
+            cout << "Успешно распарсена команда: " << sql_command->getCommandType() << endl;
+
+            // Здесь можно вызвать 
+
+        }
+        catch (const ValidationError& e) {
+            cout << "Ошибка валидации: " << e.what() << endl;
         }
         catch (const exception& e) {
-            cout << "Error executing command: " << e.what() << endl;
+            cout << "Ошибка: " << e.what() << endl;
         }
     }
 
     return 0;
-}
-int main_main() {
-  return parse();
 }
