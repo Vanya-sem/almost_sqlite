@@ -9,31 +9,31 @@ class Serializer {
 public:
     static size_t serialize(All_types type, const char* input, uint8_t** buffer, int max_length = 0) {
         switch (type) {
-        case All_types::BIT:
+        case All_types::BIT:  
             return serialize_bit(input, buffer);
-        case All_types::TINYINT:
+        case All_types::TINYINT: 
             return serialize_tinyint(input, buffer);
-        case All_types::SMALLINT:
+        case All_types::SMALLINT:  
             return serialize_smallint(input, buffer);
-        case All_types::INT:
+        case All_types::INT_TYPE:  
             return serialize_int(input, buffer);
-        case All_types::BIGINT:
+        case All_types::BIGINT:  
             return serialize_bigint(input, buffer);
-        case All_types::FLOAT:
+        case All_types::FLOAT_TYPE:  
             return serialize_float(input, buffer);
-        case All_types::REAL:
+        case All_types::REAL: 
             return serialize_real(input, buffer);
-        case All_types::DATE:
+        case All_types::DATE_TYPE: 
             return serialize_date(input, buffer);
-        case All_types::TIME:
+        case All_types::TIME:  
             return serialize_time(input, buffer);
-        case All_types::DATETIME:
+        case All_types::DATETIME:  
             return serialize_datetime(input, buffer);
-        case All_types::CHAR:
+        case All_types::CHAR_TYPE:  
             return serialize_char(input, buffer, max_length);
-        case All_types::VARCHAR:
+        case All_types::VARCHAR: 
             return serialize_varchar(input, buffer, max_length);
-        case All_types::TEXT:
+        case All_types::TEXT: 
             return serialize_text(input, buffer);
         default:
             return 0;
@@ -195,7 +195,7 @@ private:
         memcpy(*buffer, input, copy_len);
 
         for (size_t i = copy_len; i < max_length; i++) {
-            (*buffer)[i] = '\0'; // 
+            (*buffer)[i] = '\0'; 
         }
 
         return max_length; 
@@ -204,29 +204,29 @@ private:
     static size_t serialize_varchar(const char* input, uint8_t** buffer, int max_length) {
         size_t length = strlen(input);
 
-        if (max_length > 0 && length > max_length) {
-            length = max_length;
+        if (max_length > 0 && length > static_cast<size_t>(max_length)) { 
+            length = static_cast<size_t>(max_length);
         }
-        *buffer = (uint8_t*)malloc(length + 2);
 
-        (*buffer)[0] = length & 0xFF;
-        (*buffer)[1] = (length >> 8) & 0xFF;
+        *buffer = (uint8_t*)malloc(length + 2);
+        (*buffer)[0] = static_cast<uint8_t>(length & 0xFF);  
+        (*buffer)[1] = static_cast<uint8_t>((length >> 8) & 0xFF);  
 
         memcpy(*buffer + 2, input, length);
-
-        return 2 + length; 
+        return 2 + length;
     }
 
     static size_t serialize_text(const char* input, uint8_t** buffer) {
-        uint32_t length = strlen(input);
+        size_t length = strlen(input);  
         *buffer = (uint8_t*)malloc(length + 4);
-        (*buffer)[0] = length & 0xFF;
-        (*buffer)[1] = (length >> 8) & 0xFF;
-        (*buffer)[2] = (length >> 16) & 0xFF;
-        (*buffer)[3] = (length >> 24) & 0xFF;
+
+        uint32_t length32 = static_cast<uint32_t>(length);
+        (*buffer)[0] = static_cast<uint8_t>(length32 & 0xFF);
+        (*buffer)[1] = static_cast<uint8_t>((length32 >> 8) & 0xFF);
+        (*buffer)[2] = static_cast<uint8_t>((length32 >> 16) & 0xFF);
+        (*buffer)[3] = static_cast<uint8_t>((length32 >> 24) & 0xFF);
 
         memcpy(*buffer + 4, input, length);
-
         return 4 + length;
     }
 };

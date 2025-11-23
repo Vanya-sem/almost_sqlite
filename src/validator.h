@@ -1,3 +1,4 @@
+// validator.h
 #pragma once
 #include <string>
 #include <cctype>
@@ -33,7 +34,6 @@ public:
             return true;
         }
 
-        // Type check
         bool isValid = false;
 
         switch (type_id) {
@@ -52,7 +52,7 @@ public:
             if (!isValid) throw ErrorType("SMALLINT out of range (-32768 to 32767)");
             break;
 
-        case All_types::INT:
+        case All_types::INT_TYPE:
             isValid = test_for_int(input);
             if (!isValid) throw ErrorType("INT out of range (-2147483648 to 2147483647)");
             break;
@@ -62,7 +62,7 @@ public:
             if (!isValid) throw ErrorType("BIGINT value out of range");
             break;
 
-        case All_types::FLOAT:
+        case All_types::FLOAT_TYPE:
             isValid = test_for_float(input);
             if (!isValid) throw ErrorType("Invalid FLOAT value");
             break;
@@ -82,7 +82,7 @@ public:
             if (!isValid) throw ErrorType("Invalid SMALLDATETIME format");
             break;
 
-        case All_types::DATE:
+        case All_types::DATE_TYPE:
             isValid = test_for_date(input);
             if (!isValid) throw ErrorType("Invalid DATE format. Expected: YYYY-MM-DD");
             break;
@@ -92,7 +92,7 @@ public:
             if (!isValid) throw ErrorType("Invalid TIME format. Expected: HH:MM:SS");
             break;
 
-        case All_types::CHAR:
+        case All_types::CHAR_TYPE:
             isValid = test_for_char(input, max_length);
             if (!isValid) throw ErrorType("CHAR value exceeds maximum length of " + std::to_string(max_length));
             break;
@@ -110,7 +110,7 @@ public:
         default:
             throw ErrorType("Unknown data type");
         }
-        
+
         return true;
     }
 private:
@@ -135,7 +135,7 @@ private:
             return false;
         }
 
-        return value >= 0 && value <= 255;  
+        return value >= 0 && value <= 255;
     }
 
     static bool test_for_smallint(const char* input) {
@@ -168,7 +168,7 @@ private:
         char* endptr;
         errno = 0;
 
-        long long value = strtoll(input, &endptr, 10);  
+        long long value = strtoll(input, &endptr, 10);
 
         if (errno != 0 || *endptr != '\0' || endptr == input) {
             return false;
@@ -187,7 +187,6 @@ private:
             return false;
         }
 
-        // Проверяем на переполнение/исчезновение
         if (value == HUGE_VALF || value == -HUGE_VALF) {
             return false;
         }
@@ -205,7 +204,6 @@ private:
     }
 
     static bool is_valid_sql_date(int year, int month, int day) {
-        // 1000-9999 YYYY
         if (year < 1000 || year > 9999) {
             return false;
         }
@@ -218,8 +216,7 @@ private:
             return false;
         }
 
-        static const int days_in_month[] = { 31, 28, 31, 30, 31, 30,
-                                           31, 31, 30, 31, 30, 31 };
+        static const int days_in_month[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
         int max_days = days_in_month[month - 1];
 
@@ -231,15 +228,12 @@ private:
     }
 
     static bool is_valid_sql_time(int hour, int minute, int second) {
-        // 00:00:00.000000 - 23:59:59.999999
         return (hour >= 0 && hour <= 23) &&
             (minute >= 0 && minute <= 59) &&
             (second >= 0 && second <= 59);
     }
 
-
     static bool test_for_date(const char* input) {
-        // YYYY-MM-DD
         if (strlen(input) != 10 || input[4] != '-' || input[7] != '-') {
             return false;
         }
@@ -257,28 +251,24 @@ private:
 
         return is_valid_sql_date(year, month, day);
     }
-    
 
     static bool is_leap_year(int year) {
         return (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0);
     }
 
     static bool test_for_datetime(const char* input) {
-        // YYYY-MM-DD HH:MM:SS
-        // YYYY-MM-DD HH:MM:SS.ffffff
-    
         int length = strlen(input);
-    
+
         if (length < 19) {
             return false;
         }
-    
+
         if (input[4] != '-' || input[7] != '-' ||
-            input[10] != ' ' || 
+            input[10] != ' ' ||
             input[13] != ':' || input[16] != ':') {
             return false;
         }
-    
+
         for (int i = 0; i < 19; i++) {
             if (i == 4 || i == 7 || i == 10 || i == 13 || i == 16) {
                 continue;
@@ -287,38 +277,36 @@ private:
                 return false;
             }
         }
-    
+
         int year = atoi(input);
         int month = atoi(input + 5);
         int day = atoi(input + 8);
         int hour = atoi(input + 11);
         int minute = atoi(input + 14);
         int second = atoi(input + 17);
-    
-        if (!is_valid_sql_date(year, month, day) || 
+
+        if (!is_valid_sql_date(year, month, day) ||
             !is_valid_sql_time(hour, minute, second)) {
             return false;
         }
-    
+
         if (length > 19) {
             if (input[19] != '.') {
                 return false;
             }
-        
-            // микросекунды
+
             for (int i = 20; i < length; i++) {
                 if (!isdigit(input[i])) {
                     return false;
                 }
             }
-        
-            // 6 знаков микросекунд
+
             int microsecond_digits = length - 20;
             if (microsecond_digits > 6) {
                 return false;
             }
         }
-    
+
         return true;
     }
 
@@ -344,17 +332,12 @@ private:
     }
 
     static bool test_for_time(const char* input) {
-        // HH:MM:SS
-        // HH:MM:SS.ffffff
-        // HH:MM:SS.fffffffff 
-
         int length = strlen(input);
 
         if (length < 8) {
             return false;
         }
 
-        // HH:MM:SS
         if (input[2] != ':' || input[5] != ':') {
             return false;
         }
@@ -376,7 +359,7 @@ private:
 
         if (length > 8) {
             if (input[8] != '.') {
-                return false; // После секунд должна быть точка
+                return false;
             }
 
             for (int i = 9; i < length; i++) {
@@ -385,7 +368,6 @@ private:
                 }
             }
 
-            // 6 знаков микросекунд
             int microsecond_digits = length - 9;
             if (microsecond_digits > 6) {
                 return false;
@@ -404,23 +386,20 @@ private:
     }
 
     static bool test_for_text(const char* input) {
-        
-        return input != nullptr && input[0] != '\0'; // TEXT ???
+        return input != nullptr && input[0] != '\0';
     }
 
     static bool has_valid_float_precision(const char* input, int max_decimal_places) {
         const char* dot_pos = strchr(input, '.');
         if (dot_pos == nullptr) {
-            return true; // Нет дробной части
+            return true;
         }
-        // экспонента
         const char* exp_pos = strchr(input, 'e');
         const char* exp_pos2 = strchr(input, 'E');
         if (exp_pos2 && (!exp_pos || exp_pos2 < exp_pos)) {
             exp_pos = exp_pos2;
         }
-        
-        // указатели 
+
         const char* fractional_start = dot_pos + 1;
         const char* fractional_end = exp_pos ? exp_pos : (input + strlen(input));
 
