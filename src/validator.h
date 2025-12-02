@@ -52,7 +52,7 @@ public:
             if (!isValid) throw ErrorType("SMALLINT out of range (-32768 to 32767)");
             break;
 
-        case All_types::INT_TYPE:
+        case All_types::INT:
             isValid = test_for_int(input);
             if (!isValid) throw ErrorType("INT out of range (-2147483648 to 2147483647)");
             break;
@@ -62,7 +62,7 @@ public:
             if (!isValid) throw ErrorType("BIGINT value out of range");
             break;
 
-        case All_types::FLOAT_TYPE:
+        case All_types::FLOAT:
             isValid = test_for_float(input);
             if (!isValid) throw ErrorType("Invalid FLOAT value");
             break;
@@ -82,7 +82,7 @@ public:
             if (!isValid) throw ErrorType("Invalid SMALLDATETIME format");
             break;
 
-        case All_types::DATE_TYPE:
+        case All_types::DATE:
             isValid = test_for_date(input);
             if (!isValid) throw ErrorType("Invalid DATE format. Expected: YYYY-MM-DD");
             break;
@@ -92,7 +92,7 @@ public:
             if (!isValid) throw ErrorType("Invalid TIME format. Expected: HH:MM:SS");
             break;
 
-        case All_types::CHAR_TYPE:
+        case All_types::CHAR:
             isValid = test_for_char(input, max_length);
             if (!isValid) throw ErrorType("CHAR value exceeds maximum length of " + std::to_string(max_length));
             break;

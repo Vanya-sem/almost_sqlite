@@ -9,14 +9,14 @@ void test_data(All_types type, const char* input, bool not_null = false, int max
     case All_types::BIT: std::cout << "BIT"; break;
     case All_types::TINYINT: std::cout << "TINYINT"; break;
     case All_types::SMALLINT: std::cout << "SMALLINT"; break;
-    case All_types::INT_TYPE: std::cout << "INT"; break; 
+    case All_types::INT: std::cout << "INT"; break; 
     case All_types::BIGINT: std::cout << "BIGINT"; break;
-    case All_types::FLOAT_TYPE: std::cout << "FLOAT"; break; 
+    case All_types::FLOAT: std::cout << "FLOAT"; break; 
     case All_types::REAL: std::cout << "REAL"; break;
     case All_types::DATETIME: std::cout << "DATETIME"; break;
-    case All_types::DATE_TYPE: std::cout << "DATE"; break; 
+    case All_types::DATE: std::cout << "DATE"; break; 
     case All_types::TIME: std::cout << "TIME"; break;
-    case All_types::CHAR_TYPE: std::cout << "CHAR"; break;  
+    case All_types::CHAR: std::cout << "CHAR"; break;  
     case All_types::VARCHAR: std::cout << "VARCHAR"; break;
     case All_types::TEXT: std::cout << "TEXT"; break;
     }
@@ -64,17 +64,17 @@ void test_data(All_types type, const char* input, bool not_null = false, int max
 
 int main2() {
 
-    test_data(All_types::INT_TYPE, "2147483647"); 
-    test_data(All_types::INT_TYPE, "3000000000"); 
+    test_data(All_types::INT, "2147483647"); 
+    test_data(All_types::INT, "3000000000"); 
  
-    test_data(All_types::FLOAT_TYPE, "3.141592"); 
-    test_data(All_types::FLOAT_TYPE, "3.14159265"); 
+    test_data(All_types::FLOAT, "3.141592"); 
+    test_data(All_types::FLOAT, "3.14159265"); 
 
-    test_data(All_types::DATE_TYPE, "2023-12-25");  
-    test_data(All_types::DATE_TYPE, "2023-13-01");  
+    test_data(All_types::DATE, "2023-12-25");  
+    test_data(All_types::DATE, "2023-13-01");  
 
-    test_data(All_types::CHAR_TYPE, "Hello", true, 10); 
-    test_data(All_types::CHAR_TYPE, "VeryLongString", true, 5);
+    test_data(All_types::CHAR, "Hello", true, 10); 
+    test_data(All_types::CHAR, "VeryLongString", true, 5);
 
     return 0;
 }

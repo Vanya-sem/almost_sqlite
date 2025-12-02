@@ -110,7 +110,7 @@ public:
         const std::vector<std::string>& column_names,
         const std::vector<std::vector<std::string>>& values);
 
-    void execute(DB* db) override;
+    void execute(DB* db) override;  
     std::string getCommandType() const override;
     bool validate() const override;
 

@@ -15,21 +15,21 @@ public:
             return serialize_tinyint(input, buffer);
         case All_types::SMALLINT:  
             return serialize_smallint(input, buffer);
-        case All_types::INT_TYPE:  
+        case All_types::INT:  
             return serialize_int(input, buffer);
         case All_types::BIGINT:  
             return serialize_bigint(input, buffer);
-        case All_types::FLOAT_TYPE:  
+        case All_types::FLOAT:  
             return serialize_float(input, buffer);
         case All_types::REAL: 
             return serialize_real(input, buffer);
-        case All_types::DATE_TYPE: 
+        case All_types::DATE: 
             return serialize_date(input, buffer);
         case All_types::TIME:  
             return serialize_time(input, buffer);
         case All_types::DATETIME:  
             return serialize_datetime(input, buffer);
-        case All_types::CHAR_TYPE:  
+        case All_types::CHAR:  
             return serialize_char(input, buffer, max_length);
         case All_types::VARCHAR: 
             return serialize_varchar(input, buffer, max_length);

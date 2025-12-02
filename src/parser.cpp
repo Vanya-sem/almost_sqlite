@@ -121,7 +121,7 @@ unique_ptr<CreateCommand> parse_create_table_query(const string& command) {
                 throw ValidationError(INVALID_SYNTAX, "VARCHAR должен иметь размер для колонки " + column_name);
             }
 
-            if (column_type_id == All_types::CHAR_TYPE && size <= 0) {
+            if (column_type_id == All_types::CHAR && size <= 0) {
                 size = 1;
             }
 

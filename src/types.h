@@ -20,25 +20,25 @@
 using namespace std;
 
 enum class All_types {
-    BIT = 0,
+    BIT = 0, // 1 bit 
     TINYINT = 1,
     SMALLINT = 2,
-    INT_TYPE = 3,       
+    INT = 3,       
     BIGINT = 4,
-    FLOAT_TYPE = 5,     
+    FLOAT = 5,     
     REAL = 6,
     DATETIME = 7,
     SMALLDATETIME = 8,
-    DATE_TYPE = 9,       
+    DATE = 9,       
     TIME = 10,
-    CHAR_TYPE = 11,     
+    CHAR = 11,     
     VARCHAR = 12,
     TEXT = 13
 };
 
 struct Column {
     string name;
-    All_types type = All_types::INT_TYPE; 
+    All_types type; 
     int size = 0;
 };
 
