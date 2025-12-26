@@ -1,0 +1,21 @@
+﻿  storage_manager.cpp
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(142,15): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(170,15): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(202,18): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(207,19): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(212,26): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(224,25): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(391,25): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(622,15): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(734,15): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(738,17): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(742,44): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(746,48): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(801,15): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(805,17): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(809,36): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(813,39): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(817,40): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(821,40): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp(983,15): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+  almost_db.vcxproj -> C:\гуап\bd_develop\almost_sqlite\almost_db\x64\Debug\almost_db.exe

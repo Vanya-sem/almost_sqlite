@@ -1,0 +1,5 @@
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\database.cpp;C:\гуап\bd_develop\almost_sqlite\almost_db\almost_db\x64\Debug\database.obj
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\db_main.cpp;C:\гуап\bd_develop\almost_sqlite\almost_db\almost_db\x64\Debug\db_main.obj
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\query_executor.cpp;C:\гуап\bd_develop\almost_sqlite\almost_db\almost_db\x64\Debug\query_executor.obj
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\sql_parser.cpp;C:\гуап\bd_develop\almost_sqlite\almost_db\almost_db\x64\Debug\sql_parser.obj
+C:\гуап\bd_develop\almost_sqlite\almost_db\src\storage_manager.cpp;C:\гуап\bd_develop\almost_sqlite\almost_db\almost_db\x64\Debug\storage_manager.obj
